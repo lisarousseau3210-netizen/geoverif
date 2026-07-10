@@ -8,7 +8,7 @@ Aucun serveur, aucun compte, aucune donnée transmise : **les fichiers ne quitte
 
 ## Pourquoi
 
-En agence, en collectivité ou sur un chantier, on reçoit des données cartographiques produites par d'autres. Elles ont souvent un défaut invisible : un fichier de projection manquant qui décale tout de plusieurs centaines de kilomètres, des géométries vides, des doublons, une colonne à moitié vide, des saisies incohérentes. S'en apercevoir demande un logiciel SIG, du temps et de l'habitude — que la personne qui réceptionne n'a pas toujours. Le défaut se découvre alors trop tard.
+En agence, en collectivité ou sur un chantier, on reçoit des données cartographiques produites par d'autres. Elles ont souvent un défaut invisible : un fichier de projection manquant qui décale tout de plusieurs centaines de kilomètres, des géométries vides, des doublons, une colonne à moitié vide, des saisies incohérentes. S'en apercevoir demande un logiciel SIG, du temps et de l'habitude, que la personne qui réceptionne n'a pas toujours. Le défaut se découvre alors trop tard.
 
 GéoVerif fait cette vérification de réception en un dépôt de fichier, sans rien installer.
 
@@ -57,6 +57,7 @@ node audit.js
 
 - **Conception et développement** : Lisa Rousseau — Neura4
 - **Cas d'usage BTP et interopérabilité BIM-SIG** : à venir
+- **QA Testers et référents métier SIG** : à venir
 - **Usages en gestion de crise et terrains contraints** : à venir
 - **Juridique, conformité et licence** : à venir
 - **Communication et lancement** : à venir
