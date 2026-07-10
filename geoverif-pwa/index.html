@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2d6a4f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232d6a4f'/%3E%3Cpath d='M9 17l5 5 9-11' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="description" content="GéoVerif — le contrôle qualité des livrables SIG. Complétude, projection, analyse géométrique et attributaire : verdict en 3 secondes, directement dans votre navigateur. Vos fichiers ne quittent jamais votre ordinateur.">
+<title>GéoVerif — le contrôle qualité des livrables SIG</title>
+<link rel="stylesheet" href="libs/leaflet.css">
+<style>
+  *{box-sizing:border-box} body{font-family:system-ui,sans-serif;margin:0;height:100vh;display:flex;flex-direction:column;background:#f5f4f0}
+  header{padding:8px 16px;background:#fff;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  h1{font-size:17px;margin:0 6px 0 0;font-weight:650;cursor:pointer}
+  h1 span{color:#2d6a4f}
+  button{font:inherit;font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer}
+  #ouvrir{border-color:#2d6a4f;background:#2d6a4f;color:#fff}
+  #recherche{font:inherit;font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid #ccc;width:210px}
+  #info{font-size:12px;color:#666;margin-left:auto}
+  #bandeau{display:none;align-items:center;gap:16px;padding:9px 18px;font-size:14px;font-weight:650;border-bottom:1px solid rgba(0,0,0,.08)}
+  #bandeau.b-vert{background:#e6f2e6;color:#1d5c1d}
+  #bandeau.b-orange{background:#fdf3d7;color:#9a6a00}
+  #bandeau.b-rouge{background:#fbe9e7;color:#b3261e}
+  #bandeau .detail{font-weight:400;font-size:12.5px;opacity:.85}
+  #bandeau button{font-size:12px;padding:4px 12px;border-color:currentColor;color:inherit;background:transparent}
+  #zone{flex:1;position:relative}
+  #map{position:absolute;inset:0}
+  #accueil{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:800;background:rgba(245,244,240,.96)}
+  #drop{border:2px dashed #b5b0a4;border-radius:16px;padding:48px 56px;text-align:center;background:#fff;max-width:540px;cursor:pointer;transition:border-color .15s}
+  #drop.survol{border-color:#2d6a4f;background:#f0f7f3}
+  #drop h2{margin:0 0 8px;font-size:20px;font-weight:600}
+  #drop p{margin:6px 0;color:#666;font-size:14px}
+  #drop .formats{font-size:12px;color:#999;margin-top:12px}
+  #erreur{color:#b3261e;font-size:14px;margin-top:12px;display:none}
+  #couches{position:absolute;left:12px;bottom:12px;z-index:700;background:#fff;border:1px solid #ddd;border-radius:12px;padding:10px 12px;min-width:230px;max-width:300px;box-shadow:0 3px 10px rgba(0,0,0,.08);font-size:13px;display:none}
+  #couches h4{margin:0 0 8px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.04em}
+  .couche{display:flex;align-items:center;gap:7px;padding:4px 0}
+  .pastille{width:12px;height:12px;border-radius:4px;flex:none}
+  .couche .nomc{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .couche button{padding:1px 6px;font-size:12px;border-radius:6px}
+  .couche .off{opacity:.4}
+  #panneau{position:absolute;top:12px;right:12px;bottom:12px;width:340px;max-width:85vw;background:#fff;border:1px solid #ddd;border-radius:14px;z-index:750;overflow-y:auto;padding:16px;display:none;box-shadow:0 4px 14px rgba(0,0,0,.08);font-size:13px}
+  #panneau h3{margin:0 0 4px;font-size:15px}
+  #panneau h4{margin:14px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#888}
+  #panneau .ok{color:#1d5c1d}#panneau .alerte{color:#9a6a00}#panneau .pb{color:#b3261e}
+  #panneau table{border-collapse:collapse;width:100%;font-size:11px}
+  #panneau th,#panneau td{border:1px solid #eee;padding:3px 5px;text-align:left;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #panneau th{background:#f7f6f3}
+  #panneau ul{margin:4px 0;padding-left:18px}
+  #modal,#apropos,#rapportcomplet,#methodo{position:absolute;inset:0;z-index:900;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center}
+  #modal .boite,#apropos .boite,#rapportcomplet .boite,#methodo .boite{background:#fff;border-radius:14px;padding:22px 26px;max-width:440px;font-size:14px;line-height:1.55;box-shadow:0 10px 34px rgba(0,0,0,.28)}
+  #modal h3{margin:0 0 10px}
+  #modal td{padding:3px 12px 3px 0;vertical-align:top}
+  #modal td:first-child{font-weight:600;white-space:nowrap}
+  .fermer{float:right;border:none;background:#f0efeb;border-radius:50%;width:30px;height:30px;font-size:15px;line-height:30px;text-align:center;cursor:pointer;color:#333;padding:0;margin:-6px -8px 0 12px}
+  .fermer:hover{background:#e2ded6;color:#000}
+  .leaflet-popup-content table{border-collapse:collapse;font-size:12px}
+  .leaflet-popup-content td{padding:2px 8px 2px 0;vertical-align:top}
+  .leaflet-popup-content td:first-child{font-weight:600;color:#555}
+  button:hover{border-color:#2d6a4f;background:#f0f7f3}
+  #ouvrir:hover{background:#245a42;border-color:#245a42}
+  button:focus-visible,#recherche:focus-visible{outline:2px solid #2d6a4f;outline-offset:1px}
+  #chargement{position:absolute;inset:0;z-index:940;background:rgba(245,244,240,.9);display:none;align-items:center;justify-content:center}
+  #chargement .boite{text-align:center;min-width:280px}
+  .spin{width:34px;height:34px;border:4px solid #dcd9d2;border-top-color:#2d6a4f;border-radius:50%;margin:0 auto 12px;animation:rot 0.9s linear infinite}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  #chargement .msg{font-size:13.5px;color:#444;margin:0}
+  #rapportcomplet .boite{max-width:860px;width:94vw;max-height:88vh;overflow:auto}
+  .chip{display:inline-block;font-size:11px;background:#eef0f6;border-radius:6px;padding:1px 8px;margin:2px 3px 0 0}
+  .chip.var{background:#fdf3d7;color:#9a6a00;font-weight:600}
+  #toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:950;background:#1f1f1f;color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;display:none;max-width:80%;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+  .couche input[type=color]{width:20px;height:20px;padding:0;border:1px solid #ccc;border-radius:5px;background:none;cursor:pointer;flex:none}
+  #apropos .boite{max-width:540px;max-height:82vh;overflow:auto}
+  #apropos h4{margin:14px 0 4px;font-size:13px}
+  #apropos p,#methodo p{margin:4px 0;font-size:13px;color:#444;text-align:justify}
+  #methodo .boite{max-width:760px;max-height:88vh;overflow:auto}
+  #methodo .ref{font-size:11.5px;color:#777}
+  #rapportcomplet table,#methodo table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 12px}
+  #rapportcomplet th,#methodo th{background:#f2f1ec;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#666;padding:7px 10px;border-bottom:2px solid #ddd}
+  #rapportcomplet td,#methodo td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top}
+  #rapportcomplet tbody tr:nth-child(even) td,#methodo tbody tr:nth-child(even) td{background:#faf9f6}
+  #rapportcomplet h3{font-size:17px;margin:0 0 2px}
+  #rapportcomplet h4,#methodo h4{margin:20px 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#888;border-bottom:1px solid #e6e3dc;padding-bottom:5px}
+  #rapportcomplet ul{margin:4px 0;padding-left:18px}
+  #methodo li{font-size:13px;color:#444;margin:3px 0}
+  #rapportcomplet .ligneattr{cursor:pointer}
+  #rapportcomplet .ligneattr:hover td{background:#f0f7f3}
+  .hintattr{font-size:11.5px;color:#888;margin:2px 0 6px}
+  .lienmentions{font-size:12px;color:#999;margin-top:14px;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0}
+  #suggestions{position:absolute;top:calc(100% + 5px);left:0;min-width:280px;background:#fff;border:1px solid #ddd;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:960;display:none;max-height:230px;overflow:auto}
+  #suggestions div{padding:7px 11px;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+  #suggestions div:hover{background:#f0f7f3}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="logo" title="Accueil">Géo<span>Verif</span></h1>
+  <button id="ouvrir">Ouvrir</button>
+  <button id="btnaccueil">Accueil</button>
+  <button id="btnformats">Formats</button>
+  <button id="btnmethodo">Méthodologie</button>
+  <button id="btnfond">Vue aérienne</button>
+  <button id="btnrapport" style="display:none">Contrôle qualité</button>
+  <span style="position:relative"><input id="recherche" placeholder="Rechercher un lieu…" autocomplete="off"><div id="suggestions"></div></span>
+  <span id="info">Vos fichiers ne quittent jamais votre ordinateur.</span>
+  <input type="file" id="fichier" multiple hidden
+         accept=".zip,.geojson,.json,.shp,.dbf,.prj,.shx,.cpg,.gpkg,.kml,.kmz,.csv,.xlsx,.xls">
+</header>
+<div id="bandeau"></div>
+<div id="zone">
+  <div id="map"></div>
+  <div id="couches"></div>
+  <div id="panneau"></div>
+  <div id="toast"></div>
+  <div id="chargement"><div class="boite"><div class="spin"></div><p class="msg">Chargement…</p></div></div>
+  <div id="rapportcomplet"><div class="boite"><div id="rccontenu"></div></div></div>
+  <div id="methodo"><div class="boite">
+    <button class="fermer" onclick="document.getElementById('methodo').style.display='none'">✕</button>
+    <h3>Méthodologie de contrôle</h3>
+    <p class="ref">Ce que GéoVerif vérifie, comment, et ce qui reste à votre charge. Un verdict n'a de valeur que si l'on sait précisément ce qu'il engage.</p>
+
+    <h4>Le principe : contrôler ce qui est vrai partout</h4>
+    <p>La « validité » d'une géométrie n'a pas de définition unique. QGIS s'appuie sur la bibliothèque GEOS, qui implémente la norme OGC Simple Features. Le modèle ESRI (shapefile, ArcGIS) accepte des configurations que cette norme rejette, comme un anneau qui se touche lui-même en un point, et utilise la convention d'orientation inverse. FME impose peu de contraintes à la lecture et confie la validation au transformateur GeometryValidator, dont les règles dépendent du paramétrage de chaque projet.</p>
+    <p>Conséquence concrète : une même couche peut être acceptée par un logiciel et rejetée par un autre, sans erreur d'aucun côté. GéoVerif ne tranche donc pas à la place d'un environnement cible. Il contrôle les <b>invariants communs</b> à tous les modèles, c'est-à-dire les défauts qui rendent la donnée inutilisable partout, et documente explicitement le reste comme hors périmètre.</p>
+
+    <h4>Synthèse des contrôles</h4>
+    <table><thead><tr><th>Contrôle</th><th>Méthode</th><th>Limite principale</th></tr></thead><tbody>
+      <tr><td>Complétude du livrable</td><td>Présence des composants du shapefile (.shp, .dbf, .shx, .prj) selon la spécification ESRI (1998)</td><td>Sans objet pour les formats mono-fichier (GeoJSON, GeoPackage)</td></tr>
+      <tr><td>Référence spatiale</td><td>Lecture du WKT (.prj ou gpkg_spatial_ref_sys), reprojection proj4. À défaut, test des bornes physiques : |x| &gt; 180° ou |y| &gt; 90° signale une projection métrique non déclarée</td><td>Des coordonnées métriques restant dans les bornes angulaires ne sont pas détectées (cas marginal pour les emprises françaises, le Lambert 93 s'exprimant en centaines de km)</td></tr>
+      <tr><td>Géométries</td><td>Détection des géométries nulles ou vides et des anneaux de moins de 4 sommets, fermeture incluse : rejetés par tous les modèles</td><td>Auto-intersections, orientation des anneaux et topologie : non testées (voir ci-dessous)</td></tr>
+      <tr><td>Doublons</td><td>Empreinte exacte (type + coordonnées sérialisées), comparaison stricte</td><td>Quasi-doublons non appariés (sommets réordonnés, précision différente). Désactivé au-delà de 50 000 entités, avec mention au rapport</td></tr>
+      <tr><td>Attributs</td><td>Dénombrement des valeurs distinctes par champ, puis regroupement après normalisation (minuscules, espaces de bord). Les groupes à plusieurs graphies signalent une saisie incohérente</td><td>Pas de rapprochement par distance d'édition : sur des référentiels réels, il produit trop de faux positifs entre libellés légitimement proches</td></tr>
+    </tbody></table>
+
+    <h4>Ce que GéoVerif ne vérifie pas</h4>
+    <p>Ces contrôles exigent un moteur géométrique complet (type GEOS) ou dépendent du cahier des charges de chaque projet. Ils restent à réaliser dans l'environnement de destination :</p>
+    <ul>
+      <li>les auto-intersections et l'inclusion des anneaux intérieurs dans l'anneau extérieur ;</li>
+      <li>l'orientation des anneaux et la fermeture effective premier/dernier sommet ;</li>
+      <li>les règles topologiques entre entités : chevauchements, lacunes, connexité de réseau.</li>
+    </ul>
+    <p>Pour un usage réglementaire ou contractuel, une passe de validation dans le logiciel cible reste indispensable : « Vérifier la validité » de QGIS en méthode GEOS, ou GeometryValidator de FME paramétré selon votre cahier des charges. GéoVerif est un contrôle de réception, pas une certification.</p>
+
+    <h4>Exécution locale</h4>
+    <p>L'intégralité des contrôles s'exécute dans votre navigateur : lecture binaire des shapefiles (shpjs), des GeoPackage (SQLite compilé en WebAssembly, décodage WKB conforme au standard OGC GeoPackage), reprojection proj4. Aucune donnée n'est transmise à un serveur. Le rapport imprimable constitue une trace de contrôle horodatée ; il engage la méthodologie décrite ici, dans les limites qu'elle énonce.</p>
+
+    <h4>Références</h4>
+    <p class="ref">OGC 06-103r4, Simple Feature Access, Part 1: Common Architecture ; ESRI, Shapefile Technical Description, 1998 ; OGC GeoPackage Encoding Standard ; ISO 19107, Information géographique, Schéma spatial.</p>
+  </div></div>
+  <div id="modal"><div class="boite">
+    <button class="fermer" onclick="document.getElementById('modal').style.display='none'">✕</button>
+    <h3>Formats pris en charge</h3>
+    <table>
+      <tr><td>Shapefile</td><td>archive .zip, ou fichiers .shp + .dbf + .prj sélectionnés ensemble</td></tr>
+      <tr><td>GeoPackage</td><td>.gpkg : toutes les couches vecteur, quel que soit le système de coordonnées</td></tr>
+      <tr><td>GeoJSON</td><td>.geojson, .json</td></tr>
+      <tr><td>KML / KMZ</td><td>.kml, .kmz (Google Earth)</td></tr>
+      <tr><td>CSV / Excel</td><td>.csv, .xlsx : les colonnes de coordonnées (latitude/longitude, x/y) sont détectées automatiquement</td></tr>
+    </table>
+    <p style="color:#888;font-size:12px;margin-bottom:0">Non pris en charge : rasters, GML, formats BIM (IFC, RVT).</p>
+  </div></div>
+  <div id="apropos"><div class="boite">
+    <button class="fermer" onclick="document.getElementById('apropos').style.display='none'">✕</button>
+    <h3>À propos & mentions légales</h3>
+    <p class="ref" style="font-size:11.5px;color:#999">GéoVerif v1.0 · juillet 2026</p>
+    <h4>Éditeur</h4>
+    <p>Neura4 — SIREN : 979 160 116<br>
+    Contact : contact.geoverif@gmail.com</p>
+    <h4>Hébergement</h4>
+    <p>GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr St, San Francisco, CA 94107, États-Unis.</p>
+    <h4>Confidentialité</h4>
+    <p>Vos fichiers sont lus et traités <strong>localement, dans votre navigateur</strong>. Ils ne sont jamais envoyés, stockés ni analysés par un serveur. GéoVerif n'utilise ni cookie ni traceur, et ne collecte aucune donnée personnelle.</p>
+    <p>GéoVerif utilise GoatCounter, un outil de mesure d'audience open source, sans cookie et ne collectant aucune donnée personnelle identifiante.</p>
+    <p>Deux fonctions impliquent des requêtes vers des services tiers : l'affichage des fonds de carte (OpenStreetMap, Esri) et la recherche de lieu (Nominatim, OpenStreetMap Foundation). Votre adresse IP est visible de ces services, comme pour tout site web ; le contenu de vos fichiers ne leur est jamais transmis.</p>
+    <h4>Données et licences</h4>
+    <p>Fonds de carte © contributeurs OpenStreetMap (licence ODbL) · Imagerie © Esri, Maxar, Earthstar Geographics. GéoVerif s'appuie sur des bibliothèques open source (licences MIT, BSD, Apache 2.0) : Leaflet, shpjs, sql.js, proj4js, PapaParse, SheetJS, JSZip, toGeoJSON.</p>
+    <h4>Responsabilité</h4>
+    <p>GéoVerif est un outil de visualisation et de contrôle fourni « en l'état », sans garantie. Il ne remplace pas une validation par un logiciel SIG pour tout usage réglementaire ou contractuel.</p>
+  </div></div>
+  <div id="accueil">
+    <div id="drop">
+      <h2>Vérifiez la validité de votre livrable SIG</h2>
+      <p><b>Verdict en 3 secondes</b> — déposez le fichier qu'on vous a envoyé :<br>
+      complétude du livrable, projection, analyse géométrique et attributaire.<br>
+      <span style="color:#1d5c1d">✓ exploitable</span> · <span style="color:#9a6a00">⚠ réserves</span> · <span style="color:#b3261e">✗ bloquant</span></p>
+      <p class="formats">Shapefile · GeoPackage · GeoJSON · KML · CSV/Excel — jusqu'à 5 couches superposées</p>
+      <p id="erreur"></p>
+      <button class="lienmentions" onclick="event.stopPropagation();document.getElementById('apropos').style.display='flex'">À propos & mentions légales</button>
+    </div>
+  </div>
+</div>
+
+<script src="libs/leaflet.js"></script>
+<script src="libs/shp.js"></script>
+<script>
+
+// Parseur WKB (géométries binaires standard) — pur JS.
+function lireWKBGeom(dv, o) {
+  const little = dv.getUint8(o) === 1; o += 1;
+  let t = dv.getUint32(o, little); o += 4;
+  let hasZ = false, hasM = false;
+  if (t & 0x80000000) { hasZ = true; t &= 0x7fffffff; }
+  if (t & 0x40000000) { hasM = true; t &= 0x3fffffff; }
+  if (t >= 3000) { hasZ = hasM = true; t -= 3000; }
+  else if (t >= 2000) { hasM = true; t -= 2000; }
+  else if (t >= 1000) { hasZ = true; t -= 1000; }
+  const dim = 2 + hasZ + hasM;
+  const point = () => {
+    const x = dv.getFloat64(o, little), y = dv.getFloat64(o + 8, little);
+    o += dim * 8; return [x, y];
+  };
+  const anneau = () => {
+    const n = dv.getUint32(o, little); o += 4;
+    return Array.from({length: n}, point);
+  };
+  const NOMS = {1:'Point',2:'LineString',3:'Polygon',4:'MultiPoint',5:'MultiLineString',6:'MultiPolygon',7:'GeometryCollection'};
+  let coordinates, geometries;
+  if (t === 1) coordinates = point();
+  else if (t === 2) coordinates = anneau();
+  else if (t === 3) {
+    const n = dv.getUint32(o, little); o += 4;
+    coordinates = Array.from({length: n}, anneau);
+  } else if (t >= 4 && t <= 7) {
+    const n = dv.getUint32(o, little); o += 4;
+    const parts = [];
+    for (let i = 0; i < n; i++) {
+      const sous = lireWKBGeom(dv, o); o = sous.fin; parts.push(sous.geom);
+    }
+    if (t === 7) geometries = parts;
+    else coordinates = parts.map(g => g.coordinates);
+  } else throw new Error('Type WKB non géré : ' + t);
+  const geom = t === 7 ? {type: NOMS[t], geometries} : {type: NOMS[t], coordinates};
+  return {geom, fin: o};
+}
+
+// Blob géométrie GeoPackage = en-tête GP + WKB
+function lireGeomGpkg(blob) {
+  const dv = new DataView(blob.buffer, blob.byteOffset, blob.byteLength);
+  if (dv.getUint8(0) !== 0x47 || dv.getUint8(1) !== 0x50) throw new Error('Blob GPKG invalide');
+  const flags = dv.getUint8(3);
+  if ((flags >> 5) & 1) return null; // géométrie vide
+  const envInd = (flags >> 1) & 7;
+  const tailleEnv = [0, 32, 48, 48, 64][envInd] ?? 0;
+  return lireWKBGeom(dv, 8 + tailleEnv).geom;
+}
+
+function transformerCoords(geom, tr) {
+  const marche = c => (typeof c[0] === 'number') ? tr(c) : c.map(marche);
+  if (geom.type === 'GeometryCollection')
+    return {...geom, geometries: geom.geometries.map(g => transformerCoords(g, tr))};
+  return {...geom, coordinates: marche(geom.coordinates)};
+}
+
+// Lit toutes les couches vecteur d'un GeoPackage. SQL = module sql.js, proj = proj4.
+function lireGeoPackage(SQL, proj, buf) {
+  const db = new SQL.Database(new Uint8Array(buf));
+  const res = db.exec(
+    "SELECT c.table_name, g.column_name, g.srs_id FROM gpkg_contents c " +
+    "JOIN gpkg_geometry_columns g ON c.table_name = g.table_name " +
+    "WHERE c.data_type = 'features'");
+  const couches = [];
+  if (!res.length) { db.close(); return couches; }
+  for (const [table, colGeom, srsId] of res[0].values) {
+    let tr = null, crsNom = 'EPSG:' + srsId;
+    if (srsId !== 4326) {
+      const d = db.exec("SELECT definition, srs_name FROM gpkg_spatial_ref_sys WHERE srs_id = " + Number(srsId));
+      if (d.length) {
+        crsNom = d[0].values[0][1] || crsNom;
+        try { const t = proj(d[0].values[0][0], 'WGS84'); tr = c => t.forward(c); }
+        catch (e) { crsNom += ' (reprojection impossible)'; }
+      }
+    }
+    const rows = db.exec('SELECT * FROM "' + String(table).replace(/"/g, '""') + '"');
+    const features = [];
+    if (rows.length) {
+      const cols = rows[0].columns, iGeom = cols.indexOf(colGeom);
+      for (const v of rows[0].values) {
+        const props = {};
+        cols.forEach((c, i) => { if (i !== iGeom && c !== 'fid') props[c] = v[i]; });
+        let geom = null;
+        if (v[iGeom]) {
+          geom = lireGeomGpkg(v[iGeom]);
+          if (geom && tr) geom = transformerCoords(geom, tr);
+        }
+        features.push({type: 'Feature', geometry: geom, properties: props});
+      }
+    }
+    couches.push({nom: table, crs: crsNom,
+                  fc: {type: 'FeatureCollection', features}});
+  }
+  db.close();
+  return couches;
+}
+
+// Détection colonnes coordonnées pour CSV/Excel
+function detecterXY(entetes) {
+  const bas = entetes.map(e => String(e).trim().toLowerCase());
+  const chercher = c => bas.findIndex(e => c.includes(e));
+  const iy = chercher(['latitude', 'lat', 'y', 'ycoord', 'y_coord', 'lat_dd']);
+  const ix = chercher(['longitude', 'lon', 'lng', 'long', 'x', 'xcoord', 'x_coord', 'lon_dd']);
+  return (ix >= 0 && iy >= 0 && ix !== iy) ? {ix, iy} : null;
+}
+
+function lignesVersPoints(lignes, entetes) {
+  const xy = detecterXY(entetes);
+  if (!xy) return null;
+  const features = [];
+  for (const l of lignes) {
+    const x = parseFloat(l[xy.ix]), y = parseFloat(l[xy.iy]);
+    if (!isFinite(x) || !isFinite(y)) continue;
+    const props = {};
+    entetes.forEach((e, i) => props[e] = l[i]);
+    features.push({type: 'Feature', geometry: {type: 'Point', coordinates: [x, y]}, properties: props});
+  }
+  return {type: 'FeatureCollection', features};
+}
+
+
+const $ = s => document.querySelector(s);
+const MAX_COUCHES = 5;                       // couches superposées max
+const MAX_ENTITES = 15000;                   // au-delà : refus explicite (outil navigateur, pas SIG de bureau)
+const TAILLE_AVERTIR = 60 * 1024 * 1024;     // 60 Mo : message avertissement
+const TAILLE_REFUS = 250 * 1024 * 1024;      // 250 Mo : refus
+const PALETTE = ['#2d6a4f','#b5651d','#1d4e89','#8e44ad','#c0392b','#0f766e'];
+const carte = L.map('map').setView([46.6, 2.4], 6);
+const fondPlan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom: 19, attribution: '© OpenStreetMap'});
+const fondAerien = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {maxZoom: 19, attribution: '© Esri, Maxar, Earthstar Geographics'});
+fondPlan.addTo(carte);
+let aerien = false;
+const couches = [];
+
+// --- chargement des libs optionnelles ---
+const _libs = {};
+function chargerScript(url, globale) {
+  if (_libs[url]) return _libs[url];
+  _libs[url] = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = url; s.onload = () => res(window[globale]); s.onerror = () => rej(new Error('Lib inaccessible : ' + url));
+    document.head.appendChild(s);
+  });
+  return _libs[url];
+}
+const libSql = () => chargerScript('libs/sql-wasm.js','initSqlJs')
+  .then(init => init({locateFile: f => 'libs/' + f}));
+const libProj = () => chargerScript('libs/proj4.js','proj4');
+const libKml = () => chargerScript('libs/togeojson.umd.js','toGeoJSON');
+const libCsv = () => chargerScript('libs/papaparse.min.js','Papa');
+const libXlsx = () => chargerScript('libs/xlsx.full.min.js','XLSX');
+const libZip = () => chargerScript('libs/jszip.min.js','JSZip');
+
+// --- analyse de santé (v1, + nom de CRS externe) ---
+function nomCRS(prj) {
+  if (!prj) return null;
+  const m = prj.match(/(?:PROJCS|GEOGCS|PROJCRS|GEOGCRS)\[\s*"([^"]+)"/i);
+  return m ? m[1] : 'inconnu (WKT non reconnu)';
+}
+function coordsPlat(geom, acc) {
+  if (!geom) return acc;
+  const walk = c => Array.isArray(c[0]) ? c.forEach(walk) : acc.push(c);
+  if (geom.type === 'GeometryCollection') geom.geometries.forEach(g => coordsPlat(g, acc));
+  else if (geom.coordinates) walk(geom.coordinates);
+  return acc;
+}
+function anneauxPolygone(g) {
+  if (g.type === 'Polygon') return g.coordinates;
+  if (g.type === 'MultiPolygon') return g.coordinates.flat();
+  return [];
+}
+function analyser(fc, meta = {}) {
+  const feats = fc.features || [];
+  const r = {nb: feats.length, types:{}, champs:[], apercu:[], emprise:null,
+             crs: meta.crsNom || nomCRS(meta.prj), anomalies:[], avertissements:[]};
+  if (!feats.length) {
+    r.anomalies.push('Couche vide : aucune entité — livrable inexploitable en l\'état.');
+    r.verdict = 'rouge'; r.completude = 'inexploitable';
+    r.controles = [{nom: 'Lecture du fichier', etat: 'pb', detail: 'aucune entité lisible'}];
+    return r;
+  }
+  let vides=0, degeneres=0, horsMonde=0;
+  let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
+  for (const f of feats) {
+    const g = f.geometry;
+    if (!g || (!g.coordinates && !g.geometries) || (g.coordinates && !g.coordinates.length)) { vides++; continue; }
+    r.types[g.type] = (r.types[g.type]||0)+1;
+    for (const ring of anneauxPolygone(g)) if (ring.length < 4) degeneres++;
+    for (const [x,y] of coordsPlat(g, [])) {
+      if (x<minX)minX=x; if (x>maxX)maxX=x; if (y<minY)minY=y; if (y>maxY)maxY=y;
+      if (Math.abs(x)>180 || Math.abs(y)>90) horsMonde++;
+    }
+  }
+  if (isFinite(minX)) r.emprise = [minX,minY,maxX,maxY];
+  if (vides) r.anomalies.push(`${vides} entité(s) sans géométrie — elles ne s'afficheront pas dans QGIS ou ArcGIS.`);
+  if (degeneres) r.anomalies.push(`${degeneres} polygone(s) à géométrie dégénérée (moins de 4 points) — affichage et calculs de surface faux.`);
+  if (horsMonde && !meta.reprojetee) r.anomalies.push(
+    "Coordonnées hors limites latitude/longitude : projection métrique probable (Lambert 93 ?) sans référence fournie — le positionnement sera faux.");
+  for (const mq of (meta.manquants || [])) {
+    if (mq.bloquant) r.anomalies.push(mq.message);
+    else r.avertissements.push(mq.message);
+  }
+  if (!r.crs && !meta.reprojetee && !(meta.manquants || []).some(m => m.fichier === '.prj'))
+    r.avertissements.push('Système de coordonnées non fourni — WGS84 supposé, positionnement à vérifier.');
+  // Doublons de géométrie (détection simple, plafonnée pour la performance)
+  let doublons = 0;
+  const doublonsVerifies = feats.length <= 50000;
+  if (feats.length && doublonsVerifies) {
+    const vus = new Map();
+    for (const f of feats) {
+      if (!f.geometry || !f.geometry.coordinates) continue;
+      const cle = f.geometry.type + JSON.stringify(f.geometry.coordinates);
+      vus.set(cle, (vus.get(cle) || 0) + 1);
+    }
+    doublons = [...vus.values()].reduce((n, c) => n + (c - 1), 0);
+    if (doublons) r.avertissements.push(
+      `${doublons} géométrie(s) en doublon exact — entités superposées identiques, souvent un défaut d'export du prestataire.`);
+  }
+  const props0 = feats.map(f => f.properties || {});
+  const noms = [...new Set(props0.flatMap(p => Object.keys(p)))];
+  let champsVides = 0;
+  for (const n of noms) {
+    const vals = props0.map(p => p[n]).filter(v => v!==null && v!==undefined && v!=='');
+    const taux = Math.round(100*vals.length/feats.length);
+    r.champs.push({nom:n, type: vals.length ? typeof vals[0] : '?', taux});
+    if (!taux) { champsVides++; r.avertissements.push(`Champ « ${n} » entièrement vide.`); }
+  }
+  if (!noms.length && !(meta.manquants || []).some(m => m.fichier === '.dbf'))
+    r.avertissements.push('Aucune table attributaire — les entités n\'ont aucune donnée associée.');
+  r.apercu = props0.slice(0,5);
+  // Contrôle attributaire : valeurs distinctes par champ + variantes de casse/espaces
+  const lignesProfil = props0.length > 50000 ? props0.slice(0, 50000) : props0;
+  r.attributsPartiels = props0.length > 50000;
+  r.attributs = [];
+  for (const n of noms.slice(0, 40)) {
+    const comptes = new Map();
+    for (const p of lignesProfil) {
+      const v = p[n];
+      if (v === null || v === undefined || v === '') continue;
+      const s = String(v);
+      comptes.set(s, (comptes.get(s) || 0) + 1);
+    }
+    const tri = [...comptes.entries()].sort((a, b) => b[1] - a[1]);
+    // variantes : mêmes valeurs à la casse/aux espaces près (ENEDIS / eNEDIS / ENEDIS )
+    const groupes = new Map();
+    for (const [v] of tri) {
+      const cle = v.trim().toLowerCase();
+      if (!groupes.has(cle)) groupes.set(cle, []);
+      groupes.get(cle).push(v);
+    }
+    const variantes = [...groupes.values()].filter(g => g.length > 1);
+    if (variantes.length) r.avertissements.push(
+      `Champ « ${n} » : valeurs identiques à la casse/aux espaces près (ex : ${variantes[0].slice(0, 3).join(' / ')}) — saisies incohérentes probables.`);
+    r.attributs.push({nom: n, distinct: comptes.size, valeurs: tri.slice(0, 200),
+                      tronque: tri.length > 200, variantes});
+  }
+  const mq = meta.manquants || [];
+  r.controles = [
+    {nom: 'Complétude du livrable',
+     etat: mq.length ? 'alerte' : (meta.completudeConnue ? 'ok' : 'na'),
+     detail: mq.length ? 'manquant(s) : ' + mq.map(m => m.fichier).join(', ')
+           : (meta.completudeConnue ? 'tous les fichiers attendus sont présents' : 'non applicable à ce format')},
+    {nom: 'Système de coordonnées',
+     etat: (horsMonde && !meta.reprojetee) ? 'pb' : ((!r.crs && !meta.reprojetee) ? 'alerte' : 'ok'),
+     detail: r.crs ? r.crs : (meta.reprojetee ? 'reprojeté automatiquement' : 'non fourni — WGS84 supposé')},
+    {nom: 'Validité des géométries',
+     etat: (vides || degeneres) ? 'pb' : 'ok',
+     detail: (vides || degeneres) ? `${vides} vide(s), ${degeneres} dégénérée(s)` : `${r.nb} géométrie(s) lisibles`},
+    {nom: 'Doublons de géométrie',
+     etat: !doublonsVerifies ? 'na' : (doublons ? 'alerte' : 'ok'),
+     detail: !doublonsVerifies ? 'non vérifié (couche très volumineuse)'
+           : (doublons ? doublons + ' doublon(s) exact(s)' : 'aucun doublon exact')},
+    {nom: 'Table attributaire',
+     etat: (!noms.length || champsVides) ? 'alerte' : 'ok',
+     detail: noms.length ? `${noms.length} champ(s), ${champsVides} entièrement vide(s)` : 'absente'},
+  ];
+  r.verdict = r.anomalies.length ? 'rouge' : (r.avertissements.length ? 'orange' : 'vert');
+  r.completude = r.nb === 0 ? 'inexploitable'
+    : (meta.manquants || []).length ? 'incomplet' : (meta.completudeConnue ? 'complet' : null);
+  return r;
+}
+
+// --- gestion des couches ---
+function echap(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function chargement(msg) {
+  const c = $('#chargement');
+  if (!msg) { c.style.display = 'none'; return; }
+  c.querySelector('.msg').textContent = msg;
+  c.style.display = 'flex';
+}
+const souffle = () => new Promise(r => setTimeout(r, 15));  // rend la main au navigateur
+let _toastTimer = null;
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.style.display = 'none', 5500);
+}
+function popupAttributs(props) {
+  if (!props || !Object.keys(props).length) return 'Aucun attribut';
+  return '<table>' + Object.entries(props).slice(0, 25)
+    .map(([k,v]) => `<tr><td>${echap(k)}</td><td>${echap(v)}</td></tr>`).join('') + '</table>';
+}
+function ajouterCouche(fc, nom, meta = {}) {
+  const nb = (fc.features || []).length;
+  if (nb > MAX_ENTITES) {
+    erreur(`« ${nom} » contient ${nb.toLocaleString('fr-FR')} entités — au-delà de la capacité d'un contrôle dans le navigateur (${MAX_ENTITES.toLocaleString('fr-FR')} max). Pour ce volume, utilisez un SIG de bureau comme QGIS.`);
+    return false;
+  }
+  if (couches.length >= MAX_COUCHES) {
+    toast(`Limite de ${MAX_COUCHES} couches superposées atteinte — retirez une couche pour en ajouter une autre.`);
+    return false;
+  }
+  const couleur = PALETTE[couches.length % PALETTE.length];
+  const style = {color: couleur, weight: 2, fillColor: couleur, fillOpacity: .3};
+  const lay = L.geoJSON(fc, {
+    style,
+    pointToLayer: (f, latlng) => L.circleMarker(latlng, {...style, radius: 6, fillOpacity: .7}),
+    onEachFeature: (f, l) => l.bindPopup(popupAttributs(f.properties))
+  }).addTo(carte);
+  const rapport = analyser(fc, meta);
+  couches.push({nom, lay, couleur, rapport, fc, visible: true});
+  const b = lay.getBounds();
+  if (b.isValid()) carte.fitBounds(b, {padding: [30, 30]});
+  $('#accueil').style.display = 'none';
+  rendreListeCouches();
+  majBoutonRapport();
+  rendreRapport(couches.length - 1);
+  return true;
+}
+const VERDICTS = {
+  vert:   {txt: '✓ Exploitable',            c: '#1d5c1d'},
+  orange: {txt: '⚠ Utilisable avec réserves', c: '#9a6a00'},
+  rouge:  {txt: '✗ Problème bloquant',       c: '#b3261e'},
+};
+function majBoutonRapport() {
+  const btn = $('#btnrapport'), bd = $('#bandeau');
+  if (!couches.length) { btn.style.display = 'none'; bd.style.display = 'none'; return; }
+  const c = couches[couches.length - 1];
+  const v = VERDICTS[c.rapport.verdict];
+  btn.style.display = 'inline-block';
+  btn.textContent = v.txt;
+  btn.style.borderColor = v.c; btn.style.color = v.c;
+  const compl = {complet: 'livrable complet', incomplet: 'livrable incomplet',
+                 inexploitable: 'livrable inexploitable'}[c.rapport.completude];
+  bd.className = 'b-' + c.rapport.verdict;
+  bd.style.display = 'flex';
+  bd.innerHTML = `<span>${v.txt}</span>
+    <span class="detail">${echap(c.nom)} — ${c.rapport.nb} entité(s)${compl ? ' · ' + compl : ''}</span>
+    <button type="button">Rapport complet</button>`;
+  const idx = couches.length - 1;
+  bd.querySelector('button').onclick = () => rapportComplet(idx);
+}
+function htmlRapport(r, nom, complet = false) {
+  const V = {vert: ['\u2713 EXPLOITABLE', '#1d5c1d', '#e6f2e6'],
+             orange: ['\u26a0 UTILISABLE AVEC R\u00c9SERVES', '#9a6a00', '#fdf3d7'],
+             rouge: ['\u2717 PROBL\u00c8ME BLOQUANT', '#b3261e', '#fbe9e7']}[r.verdict || 'vert'];
+  const badge = `<div style="margin:8px 0 4px;padding:9px 14px;border-radius:10px;font-weight:700;
+    color:${V[1]};background:${V[2]};border:1px solid ${V[1]}">${V[0]}</div>`;
+  const compl = {complet: 'Livrable complet', incomplet: 'Livrable incomplet',
+                 inexploitable: 'Livrable inexploitable'}[r.completude];
+  const li = (arr, cls) => arr.map(a => `<li class="${cls}">${echap(a)}</li>`).join('');
+  const emp = r.emprise ? r.emprise.map(v => v.toFixed(4)).join(', ') : '\u2014';
+  const colonnes = r.champs.map(c => `<tr><td>${echap(c.nom)}</td><td>${c.type}</td><td>${c.taux}%</td></tr>`).join('');
+  const entetes = r.champs.slice(0,6).map(c => `<th>${echap(c.nom)}</th>`).join('');
+  const lignes = r.apercu.map(p =>
+    `<tr>${r.champs.slice(0,6).map(c => `<td>${echap(p[c.nom])}</td>`).join('')}</tr>`).join('');
+  const champsHtml = r.champs.length ? `
+    <h4>Champs (${r.champs.length})</h4>
+    <table><thead><tr><th>nom</th><th>type</th><th>rempli</th></tr></thead><tbody>${colonnes}</tbody></table>` : '';
+  const apercuHtml = (r.apercu.length && r.champs.length) ? `
+    <h4>Aper\u00e7u (5 premi\u00e8res entit\u00e9s)</h4>
+    <table><thead><tr>${entetes}</tr></thead><tbody>${lignes}</tbody></table>` : '';
+  const base = `<h3>${echap(nom)}</h3>${badge}
+    ${r.anomalies.length ? `<h4>Probl\u00e8mes</h4><ul>${li(r.anomalies,'pb')}</ul>` : ''}
+    ${r.avertissements.length ? `<h4>Avertissements</h4><ul>${li(r.avertissements,'alerte')}</ul>` : ''}
+    <h4>R\u00e9sum\u00e9</h4>
+    <ul>
+      ${compl ? `<li><strong>${compl}</strong></li>` : ''}
+      <li>${r.nb} entit\u00e9(s) \u2014 ${Object.entries(r.types).map(([t,n])=>`${n} ${t}`).join(', ') || 'aucune g\u00e9om\u00e9trie'}</li>
+      <li>SCR : ${echap(r.crs || 'non fourni')}</li>
+      <li>Emprise (WGS84) : ${emp}</li>
+    </ul>`;
+  if (!complet) return base + champsHtml + apercuHtml;
+
+  const controles = (r.controles || []).map(c =>
+    `<tr><td>${c.nom}</td><td class="${{ok:'ok',alerte:'alerte',pb:'pb',na:''}[c.etat]}">` +
+    `${{ok:'OK',alerte:'\u00c0 v\u00e9rifier',pb:'Probl\u00e8me',na:'\u2014'}[c.etat]}</td><td>${echap(c.detail)}</td></tr>`).join('');
+  const attribs = (r.attributs || []).map((a, ai) => {
+    const obs = a.variantes.length
+      ? `<span class="chip var">\u26a0 ${a.variantes.length} groupe(s) de variantes</span> ${a.variantes.slice(0,2).map(g => echap(g.join(' / '))).join(' \u00b7 ')}`
+      : `<span style="color:#999">\u2014</span>`;
+    return `<tr class="ligneattr" data-ai="${ai}"><td>${echap(a.nom)}</td><td>${a.distinct.toLocaleString('fr-FR')}</td><td>${obs}</td></tr>`;
+  }).join('');
+  return base + `
+    <h4>V\u00e9rifications effectu\u00e9es</h4>
+    <table><thead><tr><th>contr\u00f4le</th><th>\u00e9tat</th><th>d\u00e9tail</th></tr></thead><tbody>${controles}</tbody></table>
+    <h4>Contr\u00f4le attributaire${r.attributsPartiels ? ' (sur les 50\u202f000 premi\u00e8res entit\u00e9s)' : ''}</h4>
+    <table id="tabattr"><thead><tr><th>champ</th><th>valeurs distinctes</th><th>observations</th></tr></thead><tbody>${attribs}</tbody></table>`
+    + champsHtml + apercuHtml;
+}
+function rendreRapport(i) {
+  const c = couches[i];
+  $('#panneau').innerHTML =
+    `<button class="fermer" onclick="document.getElementById('panneau').style.display='none'">\u2715</button>`
+    + htmlRapport(c.rapport, c.nom)
+    + `<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="rapportComplet(${i})">Rapport complet</button>
+        <button onclick="imprimerRapport(${i})">\ud83d\udda8 Imprimer / PDF</button>
+      </div>
+      <p style="color:#999;font-size:11px;margin-top:14px">G\u00e9oVerif \u2014 vos donn\u00e9es restent sur votre ordinateur.</p>`;
+  $('#panneau').style.display = 'block';
+  $('#panneau').scrollTop = 0;
+}
+function rapportComplet(i) {
+  const c = couches[i];
+  if (!c) return;
+  $('#rccontenu').innerHTML =
+    `<button class="fermer" onclick="document.getElementById('rapportcomplet').style.display='none'">\u2715</button>`
+    + htmlRapport(c.rapport, c.nom, true)
+    + `<div style="margin-top:16px"><button onclick="imprimerRapport(${i})">\ud83d\udda8 Imprimer / PDF</button></div>`;
+  const tab = $('#rccontenu #tabattr');
+  if (tab) {
+    tab.insertAdjacentHTML('beforebegin',
+      '<p class="hintattr">Cliquez sur un champ pour consulter la liste de ses valeurs.</p>');
+    tab.querySelectorAll('.ligneattr').forEach(tr =>
+      tr.onclick = () => voirValeurs(i, +tr.dataset.ai));
+  }
+  const rc = $('#rapportcomplet');
+  rc.style.display = 'flex';
+  rc.querySelector('.boite').scrollTop = 0;
+}
+function voirValeurs(i, ai) {
+  const c = couches[i];
+  const a = c && c.rapport.attributs && c.rapport.attributs[ai];
+  if (!a) return;
+  const vari = a.variantes.length
+    ? `<p><span class="chip var">\u26a0 variantes de casse/espaces</span> ${a.variantes.slice(0,6).map(g => echap(g.join(' / '))).join(' \u00b7 ')}</p>` : '';
+  const lignes = a.valeurs.map(([v, n]) =>
+    `<tr><td>${echap(v)}</td><td style="text-align:right;color:#888">${n.toLocaleString('fr-FR')}</td></tr>`).join('');
+  $('#rccontenu').innerHTML =
+    `<button class="fermer" onclick="document.getElementById('rapportcomplet').style.display='none'">\u2715</button>
+    <h3>Champ \u00ab ${echap(a.nom)} \u00bb</h3>
+    <p style="color:#666;font-size:13px">${a.distinct.toLocaleString('fr-FR')} valeur(s) distincte(s) \u2014 ${echap(c.nom)}</p>
+    ${vari}
+    <table><tr><th>valeur</th><th style="text-align:right">occurrences</th></tr>${lignes}</table>
+    ${a.tronque ? `<p class="hintattr">Liste limit\u00e9e aux 200 valeurs les plus fr\u00e9quentes (${a.distinct.toLocaleString('fr-FR')} au total).</p>` : ''}
+    <div style="margin-top:14px"><button onclick="rapportComplet(${i})">\u2190 Retour au rapport</button></div>`;
+  $('#rapportcomplet').querySelector('.boite').scrollTop = 0;
+}
+function rendreListeCouches() {
+  const d = $('#couches');
+  if (!couches.length) { d.style.display = 'none'; $('#info').textContent = 'Vos fichiers ne quittent jamais votre ordinateur.'; return; }
+  d.style.display = 'block';
+  d.innerHTML = `<h4>Couches (${couches.length}/${MAX_COUCHES})</h4>` + couches.map((c, i) => `
+    <div class="couche${c.visible ? '' : ' off'}">
+      <input type="color" value="${c.couleur}" title="Changer la couleur" oninput="changerCouleur(${i}, this.value)">
+      <span class="nomc" title="${echap(c.nom)}">${echap(c.nom)}</span>
+      <button title="Rapport de santé" onclick="voirRapport(${i})">${c.rapport.anomalies.length ? '⚠' : 'ⓘ'}</button>
+      <button title="Afficher/masquer" onclick="basculer(${i})">👁</button>
+      <button title="Retirer" onclick="retirer(${i})">✕</button>
+    </div>`).join('');
+  $('#info').textContent = couches.reduce((n, c) => n + c.rapport.nb, 0) + ' entité(s) chargée(s).';
+}
+function changerCouleur(i, c) {
+  couches[i].couleur = c;
+  couches[i].lay.setStyle({color: c, fillColor: c});
+}
+function voirRapport(i) { rendreRapport(i); }
+function basculer(i) {
+  const c = couches[i];
+  c.visible = !c.visible;
+  c.visible ? c.lay.addTo(carte) : carte.removeLayer(c.lay);
+  rendreListeCouches();
+}
+function retirer(i) {
+  carte.removeLayer(couches[i].lay);
+  couches.splice(i, 1);
+  rendreListeCouches();
+  majBoutonRapport();
+  if (!couches.length) $('#accueil').style.display = 'flex';
+}
+function accueil() {
+  while (couches.length) { carte.removeLayer(couches[0].lay); couches.shift(); }
+  $('#panneau').style.display = 'none';
+  $('#rapportcomplet').style.display = 'none';
+  $('#methodo').style.display = 'none';
+  rendreListeCouches();
+  majBoutonRapport();
+  $('#accueil').style.display = 'flex';
+  carte.setView([46.6, 2.4], 6);
+}
+
+// --- lecture des fichiers ---
+function erreur(msg) {
+  if (couches.length) { toast(msg); return; }
+  const e = $('#erreur'); e.textContent = msg; e.style.display = 'block';
+  $('#accueil').style.display = 'flex';
+}
+
+async function lireFichiers(files) {
+  $('#erreur').style.display = 'none';
+  const liste = [...files];
+  const lourd = liste.find(f => f.size > TAILLE_REFUS);
+  if (lourd) {
+    erreur(`« ${lourd.name} » pèse ${Math.round(lourd.size / 1048576)} Mo — trop lourd pour un traitement dans le navigateur (${Math.round(TAILLE_REFUS / 1048576)} Mo max). Pour ce volume, utilisez un SIG de bureau comme QGIS.`);
+    return;
+  }
+  if (liste.some(f => f.size > TAILLE_AVERTIR))
+    chargement('Fichier volumineux — le traitement peut prendre un moment…');
+  const shpF = liste.find(f => /\.shp$/i.test(f.name));
+  try {
+    if (shpF) {
+      const dbfF = liste.find(f => /\.dbf$/i.test(f.name));
+      const prjF = liste.find(f => /\.prj$/i.test(f.name));
+      const shxF = liste.find(f => /\.shx$/i.test(f.name));
+      const manquants = [];
+      if (!dbfF) manquants.push({fichier: '.dbf', bloquant: false,
+        message: 'Fichier .dbf absent du livrable — la table attributaire est indisponible (géométries sans données).'});
+      if (!prjF) manquants.push({fichier: '.prj', bloquant: false,
+        message: 'Fichier .prj absent du livrable — système de coordonnées inconnu : positionnement potentiellement faux.'});
+      if (!shxF) manquants.push({fichier: '.shx', bloquant: false,
+        message: "Fichier .shx absent du livrable — certains logiciels SIG refuseront d'ouvrir cette couche."});
+      const prj = prjF ? await prjF.text() : undefined;
+      const geom = shp.parseShp(await shpF.arrayBuffer(), prj);
+      const attrs = dbfF ? shp.parseDbf(await dbfF.arrayBuffer()) : geom.map(() => ({}));
+      ajouterCouche(shp.combine([geom, attrs]), shpF.name,
+        {prj, reprojetee: !!prjF, manquants, completudeConnue: true});
+      return;
+    }
+    for (const f of liste) await lireFichier(f);
+  } catch (ex) { erreur('Impossible de lire : ' + ex.message); console.error(ex); }
+  finally { chargement(null); }
+}
+
+async function lireFichier(f) {
+  const n = f.name;
+  if (/\.zip$/i.test(n)) {
+    const gj = await shp(await f.arrayBuffer());
+    for (const fc of Array.isArray(gj) ? gj : [gj])
+      ajouterCouche(fc, fc.fileName || n, {reprojetee: true, completudeConnue: true});
+  } else if (/\.(geo)?json$/i.test(n)) {
+    ajouterCouche(JSON.parse(await f.text()), n);
+  } else if (/\.gpkg$/i.test(n)) {
+    chargement('Téléchargement du moteur de lecture (une seule fois)…');
+    const [SQL, proj] = await Promise.all([libSql(), libProj()]);
+    chargement(`Ouverture de « ${n} »…`);
+    await souffle();
+    const lues = lireGeoPackage(SQL, proj, await f.arrayBuffer());
+    if (!lues.length) { chargement(null); return erreur('Aucune couche vecteur dans ce GeoPackage.'); }
+    for (const c of lues) {
+      chargement(`Analyse de « ${c.nom} » (${c.fc.features.length.toLocaleString('fr-FR')} entités)…`);
+      await souffle();
+      ajouterCouche(c.fc, `${n} › ${c.nom}`, {crsNom: c.crs, reprojetee: true});
+    }
+    chargement(null);
+  } else if (/\.kml$/i.test(n)) {
+    const tg = await libKml();
+    ajouterCouche(tg.kml(new DOMParser().parseFromString(await f.text(), 'text/xml')), n, {reprojetee: true});
+  } else if (/\.kmz$/i.test(n)) {
+    const [tg, JSZ] = await Promise.all([libKml(), libZip()]);
+    const z = await JSZ.loadAsync(await f.arrayBuffer());
+    const entree = Object.keys(z.files).find(k => /\.kml$/i.test(k));
+    if (!entree) return erreur('KMZ sans fichier KML interne.');
+    ajouterCouche(tg.kml(new DOMParser().parseFromString(await z.files[entree].async('text'), 'text/xml')), n, {reprojetee: true});
+  } else if (/\.csv$/i.test(n)) {
+    const Papa = await libCsv();
+    const res = Papa.parse((await f.text()).trim(), {skipEmptyLines: true});
+    const fc = lignesVersPoints(res.data.slice(1), res.data[0]);
+    if (!fc) return erreur('Colonnes de coordonnées introuvables dans ' + n + ' (attendu : lat/lon, latitude/longitude, x/y…).');
+    ajouterCouche(fc, n);
+  } else if (/\.xlsx?$/i.test(n)) {
+    const XLSX = await libXlsx();
+    const wb = XLSX.read(await f.arrayBuffer());
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
+    if (rows.length < 2) return erreur('Feuille Excel vide.');
+    const fc = lignesVersPoints(rows.slice(1), rows[0]);
+    if (!fc) return erreur('Colonnes de coordonnées introuvables dans ' + n + '.');
+    ajouterCouche(fc, n);
+  } else {
+    erreur('Format non reconnu : ' + n + ' — cliquez sur « Formats » pour la liste.');
+  }
+}
+
+// --- recherche géographique avec suggestions (Nominatim/OSM) ---
+function allerA(res) {
+  const b = res.boundingbox.map(Number);
+  carte.fitBounds([[b[0], b[2]], [b[1], b[3]]]);
+  $('#accueil').style.display = 'none';
+  $('#info').textContent = res.display_name.slice(0, 80);
+}
+async function chercherLieux(q, limit) {
+  const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=${limit}`);
+  return r.json();
+}
+let _sugTimer = null;
+const _rech = $('#recherche');
+_rech.addEventListener('input', () => {
+  clearTimeout(_sugTimer);
+  const q = _rech.value.trim();
+  const s = $('#suggestions');
+  if (q.length < 3) { s.style.display = 'none'; return; }
+  _sugTimer = setTimeout(async () => {
+    try {
+      const res = await chercherLieux(q, 5);
+      if (!res.length) { s.style.display = 'none'; return; }
+      s.innerHTML = res.map((x, i) => `<div data-i="${i}">${echap(x.display_name)}</div>`).join('');
+      s.style.display = 'block';
+      [...s.children].forEach((el, i) => el.onclick = () => {
+        _rech.value = res[i].display_name.split(',')[0];
+        s.style.display = 'none';
+        allerA(res[i]);
+      });
+    } catch { s.style.display = 'none'; }
+  }, 450);
+});
+_rech.addEventListener('blur', () => setTimeout(() => $('#suggestions').style.display = 'none', 200));
+_rech.addEventListener('keydown', async e => {
+  if (e.key !== 'Enter' || !_rech.value.trim()) return;
+  $('#suggestions').style.display = 'none';
+  try {
+    const r = await chercherLieux(_rech.value.trim(), 1);
+    if (!r.length) { $('#info').textContent = 'Lieu introuvable.'; return; }
+    allerA(r[0]);
+  } catch { $('#info').textContent = 'Recherche indisponible (hors ligne ?).'; }
+});
+
+// --- fonds de plan ---
+$('#btnfond').addEventListener('click', () => {
+  aerien = !aerien;
+  if (aerien) { carte.removeLayer(fondPlan); fondAerien.addTo(carte); $('#btnfond').textContent = 'Vue plan'; }
+  else { carte.removeLayer(fondAerien); fondPlan.addTo(carte); $('#btnfond').textContent = 'Vue aérienne'; }
+});
+
+// --- exports (version Pro) ---
+function imprimerRapport(i) {
+  const c = couches[i];
+  if (!c) { toast('Couche introuvable — rouvrez le rapport depuis la liste des couches.'); return; }
+  const w = window.open('', '_blank');
+  if (!w) { toast('Fenêtre bloquée par le navigateur — autorisez les pop-ups pour imprimer le rapport.'); return; }
+  w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
+<title>Rapport GéoVerif — ${echap(c.nom)}</title>
+<style>body{font-family:system-ui,sans-serif;margin:36px;font-size:13px;color:#1a1a1a}
+h3{font-size:19px;margin:0 0 4px}h4{margin:16px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#777}
+table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #ccc;padding:3px 6px;text-align:left}
+th{background:#f2f1ee}.ok{color:#1d5c1d}.pb{color:#b3261e}.alerte{color:#9a6a00}ul{padding-left:18px}li{margin:3px 0}</style>
+</head><body onload="setTimeout(function(){window.print()},300)">${htmlRapport(c.rapport, c.nom, true)}
+<p style="color:#999;font-size:10px;margin-top:26px">Rapport généré par GéoVerif v1.0 le ${new Date().toLocaleString('fr-FR')} — traitement 100% local.</p>
+</body></html>`);
+  w.document.close();
+  w.focus();
+}
+
+// --- branchements ---
+$('#drop').addEventListener('click', () => $('#fichier').click());
+$('#ouvrir').addEventListener('click', () => $('#fichier').click());
+$('#btnaccueil').addEventListener('click', accueil);
+$('#logo').addEventListener('click', accueil);
+$('#btnrapport').addEventListener('click', () => {
+  if (couches.length) voirRapport(couches.length - 1);
+});
+$('#btnformats').addEventListener('click', () => $('#modal').style.display = 'flex');
+$('#btnmethodo').addEventListener('click', () => $('#methodo').style.display = 'flex');
+const MODALES = ['rapportcomplet', 'methodo', 'apropos', 'modal'];
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') MODALES.forEach(id => $('#' + id).style.display = 'none');
+});
+for (const id of MODALES) {
+  const el = $('#' + id);
+  el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });
+}
+
+$('#fichier').addEventListener('change', e => { lireFichiers(e.target.files); e.target.value = ''; });
+['dragover','dragenter'].forEach(ev => document.body.addEventListener(ev, e => e.preventDefault()));
+document.body.addEventListener('drop', e => {
+  e.preventDefault();
+  if (e.dataTransfer.files.length) lireFichiers(e.dataTransfer.files);
+});
+</script>
+<script data-goatcounter="https://VOTRE-CODE.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script>
+if ('serviceWorker' in navigator && location.protocol.startsWith('http'))
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
