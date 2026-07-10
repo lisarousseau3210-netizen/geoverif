@@ -35,7 +35,7 @@ Toute l'analyse s'exécute dans le navigateur, en local. Aucun fichier n'est env
 
 Deux façons de l'utiliser :
 
-- **En ligne** : déploiement en cours
+- **En ligne** : https://geoverif.netlify.app/
 - **En local** : télécharger `geoverif.html` et l'ouvrir dans un navigateur. Le fichier est autonome, il fonctionne par double-clic, sans installation ni connexion.
 
 Le dossier `geoverif-pwa/` contient la version installable et hors-ligne, avec ses bibliothèques auto-hébergées.
