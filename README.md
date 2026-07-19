@@ -1,71 +1,67 @@
-# GéoVerif
+# GeoVerif
 
 **Contrôle qualité de livrables SIG, directement dans le navigateur.**
 
-On dépose le fichier reçu d'un prestataire, on obtient en quelques secondes un verdict clair : exploitable, utilisable avec réserves, ou bloquant. Avec un rapport détaillé, un contrôle des données attributaires, et un rapport imprimable à joindre au renvoi d'un livrable.
+GeoVerif réalise un contrôle de réception rapide et produit un verdict lisible — exploitable, utilisable avec réserves ou bloquant — accompagné d’un rapport détaillé.
 
-Aucun serveur, aucun compte, aucune donnée transmise : **les fichiers ne quittent jamais votre ordinateur.**
+[Ouvrir GeoVerif](https://geoverif.netlify.app/)
 
-## Pourquoi
+## Contrôles réalisés
 
-En agence, en collectivité ou sur un chantier, on reçoit des données cartographiques produites par d'autres. Elles ont souvent un défaut invisible : un fichier de projection manquant qui décale tout de plusieurs centaines de kilomètres, des géométries vides, des doublons, une colonne à moitié vide, des saisies incohérentes. S'en apercevoir demande un logiciel SIG, du temps et de l'habitude, que la personne qui réceptionne n'a pas toujours. Le défaut se découvre alors trop tard.
-
-GéoVerif fait cette vérification de réception en un dépôt de fichier, sans rien installer.
+- complétude des shapefiles (`.shp`, `.dbf`, `.shx`, `.prj`) ;
+- référence spatiale, reprojection et coordonnées hors limites ;
+- géométries vides, anneaux dégénérés et doublons exacts ;
+- complétude, types et valeurs distinctes des attributs ;
+- variantes de casse ou d’espacement dans les valeurs ;
+- rapport détaillé imprimable en PDF et diagnostic texte pour les fichiers refusés.
 
 ## Formats pris en charge
 
-Shapefile (archive `.zip` ou fichiers séparés), GeoPackage, GeoJSON, KML/KMZ, CSV et Excel avec détection automatique des colonnes de coordonnées.
+| Format | Prise en charge |
+| --- | --- |
+| Shapefile | Archive `.zip` ou composants sélectionnés ensemble |
+| GeoPackage | Couches vectorielles, depuis la version en ligne ou un serveur local |
+| GeoJSON | `.geojson`, `.json` |
+| KML / KMZ | `.kml`, `.kmz` |
+| CSV / Excel | `.csv`, `.xlsx`, `.xls` avec détection des colonnes de coordonnées |
 
-## Ce qui est vérifié
+Les rasters, le GML et les formats BIM ne sont pas pris en charge.
 
-- **Complétude du livrable** : composants du shapefile manquants (`.dbf`, `.prj`, `.shx`), signalés avec leur conséquence
-- **Référence spatiale** : lecture du WKT, reprojection automatique (Lambert 93 compris), détection des projections métriques non déclarées
-- **Validité des géométries** : entités vides, anneaux dégénérés
-- **Doublons de géométrie** exacts
-- **Contrôle attributaire** : valeurs distinctes par champ, détection des saisies incohérentes (`ENEDIS` / `eNEDIS`, `actif` / `ACTIF `)
-- **Rapport imprimable** en PDF, à joindre au renvoi d'un livrable
+## Confidentialité
 
-Une page **Méthodologie** intégrée documente chaque contrôle, sa méthode et ses limites, références OGC et ISO à l'appui. GéoVerif est un contrôle de réception, pas une certification : il vérifie les invariants communs à tous les modèles (QGIS/GEOS, ESRI, FME) et indique explicitement ce qu'il ne vérifie pas.
+La lecture et le contrôle des fichiers s’exécutent localement dans le navigateur. Aucun fichier importé, attribut ou géométrie exacte n’est transmis à GeoVerif.
 
-## Confidentialité et fonctionnement
+Les fonds de carte, la recherche de lieu et la mesure d’audience utilisent des services externes : OpenStreetMap, Esri, Nominatim et GoatCounter. GoatCounter mesure une fréquentation agrégée sans cookie. Ces services ne reçoivent pas le contenu des fichiers contrôlés.
 
-Toute l'analyse s'exécute dans le navigateur, en local. Aucun fichier n'est envoyé sur un serveur, il n'y a d'ailleurs aucun serveur. Les seules requêtes réseau concernent le fond de carte et la recherche de lieu ; elles ne transportent jamais le contenu de vos fichiers. L'outil s'installe comme une application (PWA) et fonctionne ensuite hors connexion.
+## Limites
 
-## Utilisation
+- 5 fichiers ou couches simultanés ;
+- 15 000 entités au maximum par couche ;
+- 250 Mo au maximum par fichier ;
+- 1 000 entrées au maximum par archive.
 
-Deux façons de l'utiliser :
+GeoVerif est un outil de contrôle de réception, pas un outil de certification. Une validation dans le logiciel SIG cible reste nécessaire pour un usage réglementaire ou contractuel.
 
-- **En ligne** : https://geoverif.netlify.app/
-- **En local** : télécharger `geoverif.html` et l'ouvrir dans un navigateur. Le fichier est autonome, il fonctionne par double-clic, sans installation ni connexion.
+## Utilisation locale
 
-Le dossier `geoverif-pwa/` contient la version installable et hors-ligne, avec ses bibliothèques auto-hébergées.
+Le dossier `geoverif-pwa/` contient la version déployable. Pour bénéficier de toutes les fonctions, dont les GeoPackage et l’installation PWA, servez ce dossier en HTTP :
 
-## Limites de capacité
-
-L'outil est conçu pour un contrôle de réception, pas pour manipuler de gros jeux de données. Au-delà de 15 000 entités ou 250 Mo, il refuse le fichier et oriente vers un SIG de bureau : mieux vaut un refus clair qu'un navigateur figé.
-
-## Développement et qualité
-
-Le projet est développé en un fichier HTML autonome, sans dépendance de build côté hébergement. Il est accompagné d'un banc de test automatisé (`audit.js`) qui vérifie un audit statique et une dizaine de parcours d'utilisation (chargements, verdicts, rapport, contrôle attributaire, gestion du poids, sécurité) à chaque modification.
-
+```bash
+python -m http.server 8000 --directory geoverif-pwa
 ```
-npm install jsdom
+
+Ouvrez ensuite `http://localhost:8000/`. L’ouverture directe de `geoverif-pwa/index.html` par double-clic reste possible, sauf pour les GeoPackage et les fonctions nécessitant HTTP.
+
+## Vérification
+
+Le banc d’audit ne dépend d’aucun paquet externe et nécessite Node.js 18 ou une version ultérieure :
+
+```bash
 node audit.js
 ```
 
-## Équipe
-
-- **Conception et développement** : Lisa Rousseau — Neura4
-- **Cas d'usage BTP et interopérabilité BIM-SIG** : à venir
-- **QA Testers et référents métier SIG** : à venir
-- **Usages en gestion de crise et terrains contraints** : à venir
-- **Juridique, conformité et licence** : à venir
-- **Communication et lancement** : à venir
+Il contrôle notamment la parité entre la source et la PWA, les ressources hors ligne, les contrats de confidentialité et de sécurité, ainsi que les principales règles d’analyse.
 
 ## Licence
 
-À définir. En attendant la publication d'une licence, l'usage de l'outil est libre et gratuit ; le code est consultable ici à titre de transparence.
-
----
-
-*GéoVerif est un projet porté par Neura4. Contact : contact.geoverif@gmail.com*
+Aucune licence de réutilisation n’est publiée à ce jour.
