@@ -7473,52 +7473,33 @@
     return true;
   }
 
-
-  function handleRings(rings, reversed = false) {
+  function handleRings(rings) {
     const outers = [];
     const inners = [];
     for (const ring of rings) {
       const proccessed = isClockWise(ring);
-      if (proccessed.clockWise !== reversed) {
+      if (proccessed.clockWise) {
         outers.push(proccessed);
       } else {
         inners.push(proccessed);
       }
     }
-    const orphens = [];
+    // this is an optimization, 
+    // but it would also put in weird bad rings that would otherwise get left out
+    // if (outers.length === 1) {
+    //   const out = [outers[0].ring]
+    //   for (const inner of inners) {
+    //     out.push(inner.ring);
+
+    //   }
+    //   return [out];
+    // }
     for (const inner of inners) {
-      let candidate;
       for (const outer of outers) {
         if (contains(outer, inner)) {
-          if (!candidate) {
-            candidate = outer;
-          } else {
-            if (contains(candidate, outer)) {
-              candidate = outer;
-            }
-          }
-
+          outer.children.push(inner.ring);
+          break;
         }
-      }
-      if (candidate) {
-        candidate.children.push(inner.ring);
-      } else {
-        orphens.push(inner);
-      }
-    }
-    if (reversed) {
-      return {
-        outers, orphens
-      }
-    }
-    if (orphens.length && !reversed) {
-      const otherPosibility = handleRings(rings, true);
-      if (otherPosibility.orphens.length === 0) {
-        const out = [];
-        for (const outer of otherPosibility.outers) {
-          out.push([outer.ring.toReversed()].concat(outer.children.map(item => item.toReversed())));
-        }
-        return out;
       }
     }
     const out = [];

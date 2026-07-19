@@ -3,196 +3,276 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="referrer" content="no-referrer">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232d6a4f'/%3E%3Cpath d='M9 17l5 5 9-11' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<meta name="description" content="GéoVerif — le contrôle qualité des livrables SIG. Complétude, projection, analyse géométrique et attributaire : verdict en 3 secondes, directement dans votre navigateur. Vos fichiers ne quittent jamais votre ordinateur.">
-<title>GéoVerif — le contrôle qualité des livrables SIG</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23589632'/%3E%3Cpath d='M16 6 26 16 16 26 6 16Z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='6' r='2.3' fill='white'/%3E%3Ccircle cx='26' cy='16' r='2.3' fill='white'/%3E%3Ccircle cx='16' cy='26' r='2.3' fill='white'/%3E%3Ccircle cx='6' cy='16' r='2.3' fill='white'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#589632">
+<meta name="description" content="GeoVerif — le contrôle qualité des livrables SIG. Complétude, projection, analyse géométrique et attributaire : verdict en 3 secondes, directement dans votre navigateur. Aucun fichier importé n'est envoyé.">
+<title>GeoVerif - Contrôle qualité</title>
+<link rel="stylesheet" href="libs/leaflet.css">
+<link rel="manifest" href="manifest.webmanifest">
 <style>
-  *{box-sizing:border-box} body{font-family:system-ui,sans-serif;margin:0;height:100vh;display:flex;flex-direction:column;background:#f5f4f0}
-  header{padding:8px 16px;background:#fff;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  h1{font-size:17px;margin:0 6px 0 0;font-weight:650;cursor:pointer}
-  h1 span{color:#2d6a4f}
-  button{font:inherit;font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer}
-  #ouvrir{border-color:#2d6a4f;background:#2d6a4f;color:#fff}
-  #recherche{font:inherit;font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid #ccc;width:210px}
-  #info{font-size:12px;color:#666;margin-left:auto}
-  #bandeau{display:none;align-items:center;gap:16px;padding:9px 18px;font-size:14px;font-weight:650;border-bottom:1px solid rgba(0,0,0,.08)}
+  /* Polices auto-hébergées : aucun appel à un fournisseur de fontes. */
+  @font-face{font-family:'IBM Plex Sans';src:url('libs/fonts/IBMPlexSans-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+  @font-face{font-family:'IBM Plex Sans';src:url('libs/fonts/IBMPlexSans-Medium.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:'IBM Plex Sans';src:url('libs/fonts/IBMPlexSans-SemiBold.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap}
+  @font-face{font-family:'IBM Plex Mono';src:url('libs/fonts/IBMPlexMono-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+  @font-face{font-family:'IBM Plex Mono';src:url('libs/fonts/IBMPlexMono-Medium.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:'IBM Plex Mono';src:url('libs/fonts/IBMPlexMono-SemiBold.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap}
+  *{box-sizing:border-box}
+  :root{--vert:#589632;--vert-fonce:#457628;--vert-pale:#eff5e9;--encre:#26251f;--texte-2:#57534a;--texte-3:#8c877b;--trait:#ddd8cd;--trait-leger:#eceade;--surface:#f2f1ec;--mono:'IBM Plex Mono',ui-monospace,Consolas,monospace}
+  body{font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--encre);margin:0;height:100vh;display:flex;flex-direction:column;background:#f5f4f0}
+  header{padding:8px 16px;background:#fff;border-bottom:1px solid var(--trait);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  /* --- logotype affiné : marque losange + graisse allégée + tag version, le tout en CSS --- */
+  h1{display:flex;align-items:center;font-size:16.5px;margin:0;font-weight:500;cursor:pointer;letter-spacing:.005em}
+  h1::before{content:'';width:17px;height:17px;margin-right:8px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 5 27 16 16 27 5 16Z' fill='none' stroke='%23589632' stroke-width='2' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='5' r='2' fill='%23589632'/%3E%3Ccircle cx='27' cy='16' r='2' fill='%23589632'/%3E%3Ccircle cx='16' cy='27' r='2' fill='%23589632'/%3E%3Ccircle cx='5' cy='16' r='2' fill='%23589632'/%3E%3C/svg%3E") no-repeat center/contain}
+  h1 span{color:var(--vert-fonce);font-weight:600}
+  button{font:inherit;font-size:13px;padding:6px 14px;border-radius:3px;border:1px solid var(--trait);background:#fff;cursor:pointer;color:inherit}
+  .btn-export{display:inline-block;font:inherit;font-size:13px;padding:6px 14px;border-radius:3px;border:1px solid var(--trait);background:#fff;color:inherit;text-decoration:none;cursor:pointer}
+  .btn-export:hover{border-color:var(--vert);background:var(--vert-pale)}
+  #ouvrir{border-color:var(--vert-fonce);background:var(--vert-fonce);color:#fff;font-weight:500}
+  #btnaccueil{display:none}
+  #btnformats,#btnmethodo,#btnformats:hover,#btnmethodo:hover{border:none;background:none;border-radius:0;padding:6px 2px}
+  #btnformats,#btnmethodo{color:var(--texte-2)}
+  #btnformats:hover,#btnmethodo:hover{color:var(--encre);text-decoration:underline;text-underline-offset:4px}
+  #btnrapport{font-weight:500}
+  /* sélecteur de fond = contrôle carte : ancré bas-droite (stable quelle que soit la hauteur du header) */
+  #btnfond{position:absolute;left:12px;top:90px;z-index:700;font-size:12px;padding:5px 11px;background:#fff;border:1px solid var(--trait);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+  #recherche{font:inherit;font-size:13px;padding:6px 10px 6px 30px;border-radius:3px;border:1px solid var(--trait);width:220px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238c877b' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") no-repeat 9px center/14px}
+  #recherche::placeholder{color:var(--texte-3)}
+  #recherche:hover{border-color:#b5b0a4}
+  #recherche:focus{background-color:#fff}
+  #info{font-family:var(--mono);font-size:11px;color:var(--texte-3);margin-left:auto}
+  /* le bandeau et le panneau sont mutuellement exclusifs (géré en JS) ;
+     le bouton verdict du header devient donc redondant — supprimer la ligne suivante pour le rétablir. */
+  #btnrapport{display:none!important}
+  footer{display:flex;align-items:center;gap:10px;padding:4px 14px;background:#fff;border-top:1px solid var(--trait);font-family:var(--mono);font-size:10.5px;color:var(--texte-3)}
+  footer .flien{margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;font:inherit;padding:0;text-decoration:underline;text-underline-offset:2px}
+  footer .flien:hover{color:var(--texte-2)}
+  #bandeau{display:none;align-items:center;gap:16px;padding:9px 18px;font-size:14px;font-weight:600;border-bottom:1px solid rgba(0,0,0,.08)}
   #bandeau.b-vert{background:#e6f2e6;color:#1d5c1d}
   #bandeau.b-orange{background:#fdf3d7;color:#9a6a00}
   #bandeau.b-rouge{background:#fbe9e7;color:#b3261e}
-  #bandeau .detail{font-weight:400;font-size:12.5px;opacity:.85}
+  #bandeau .detail{font-weight:400;font-size:12px;opacity:.85}
   #bandeau button{font-size:12px;padding:4px 12px;border-color:currentColor;color:inherit;background:transparent}
   #zone{flex:1;position:relative}
   #map{position:absolute;inset:0}
   #accueil{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:800;background:rgba(245,244,240,.96)}
-  #drop{border:2px dashed #b5b0a4;border-radius:16px;padding:48px 56px;text-align:center;background:#fff;max-width:540px;cursor:pointer;transition:border-color .15s}
-  #drop.survol{border-color:#2d6a4f;background:#f0f7f3}
-  #drop h2{margin:0 0 8px;font-size:20px;font-weight:600}
-  #drop p{margin:6px 0;color:#666;font-size:14px}
-  #drop .formats{font-size:12px;color:#999;margin-top:12px}
-  #erreur{color:#b3261e;font-size:14px;margin-top:12px;display:none}
-  #couches{position:absolute;left:12px;bottom:12px;z-index:700;background:#fff;border:1px solid #ddd;border-radius:12px;padding:10px 12px;min-width:230px;max-width:300px;box-shadow:0 3px 10px rgba(0,0,0,.08);font-size:13px;display:none}
-  #couches h4{margin:0 0 8px;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.04em}
+  #drop{border:1.5px dashed #b5b0a4;border-radius:6px;padding:36px 44px;text-align:center;background:#fff;max-width:490px;cursor:pointer;transition:border-color .15s}
+  #drop.survol{border-color:var(--vert);background:var(--vert-pale)}
+  #drop h2{margin:0 0 10px;font-size:19px;font-weight:600;letter-spacing:-.01em}
+  #drop p{margin:6px 0;color:var(--texte-2);font-size:13px;line-height:1.7}
+  #drop .verdicts{display:flex;gap:8px;justify-content:center;margin:12px 0 4px}
+  .badge{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:3px 9px;border-radius:3px;display:inline-block}
+  .badge.ok{color:#1d5c1d;background:#e6f2e6}
+  .badge.alerte{color:#9a6a00;background:#fdf3d7}
+  .badge.pb{color:#b3261e;background:#fbe9e7}
+  button.formats{background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:11px;color:var(--texte-3);margin-top:14px;padding:0}
+  button.formats:hover{color:var(--texte-2);text-decoration:underline dotted;text-underline-offset:3px}
+  #drop .prive{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;color:var(--texte-2);margin-top:16px;padding-top:14px;border-top:1px solid var(--trait-leger)}
+  #drop .prive svg{flex:none;stroke:var(--vert)}
+  #erreur{color:#b3261e;font-size:13px;margin-top:12px;display:none}
+  #couches{position:absolute;left:12px;bottom:12px;z-index:700;background:#fff;border:1px solid var(--trait);border-radius:6px;padding:10px 12px;min-width:230px;max-width:300px;box-shadow:0 3px 10px rgba(0,0,0,.08);font-size:13px;display:none}
+  #couches h4{margin:0 0 8px;font-family:var(--mono);font-size:10.5px;color:var(--texte-3);text-transform:uppercase;letter-spacing:.07em;font-weight:500}
   .couche{display:flex;align-items:center;gap:7px;padding:4px 0}
-  .pastille{width:12px;height:12px;border-radius:4px;flex:none}
-  .couche .nomc{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .couche button{padding:1px 6px;font-size:12px;border-radius:6px}
+  .pastille{width:12px;height:12px;border-radius:3px;flex:none}
+  .couche .nomc{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+  .couche .nomc:hover{color:var(--vert-fonce);text-decoration:underline;text-underline-offset:3px}
+  .couche button{padding:0;width:24px;height:22px;font-size:12px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center}
+  .couche button svg{width:13px;height:13px}
   .couche .off{opacity:.4}
-  #panneau{position:absolute;top:12px;right:12px;bottom:12px;width:340px;max-width:85vw;background:#fff;border:1px solid #ddd;border-radius:14px;z-index:750;overflow-y:auto;padding:16px;display:none;box-shadow:0 4px 14px rgba(0,0,0,.08);font-size:13px}
+  .couche.refus .nomc{color:#b3261e}
+  .couche.refus .nomc:hover{color:#8f1d17}
+  #panneau{position:absolute;top:12px;right:12px;bottom:12px;width:340px;max-width:85vw;background:#fff;border:1px solid var(--trait);border-radius:6px;z-index:850;overflow-y:auto;overflow-x:hidden;padding:16px;display:none;box-shadow:0 4px 14px rgba(0,0,0,.08);font-size:13px}
   #panneau h3{margin:0 0 4px;font-size:15px}
-  #panneau h4{margin:14px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:#888}
+  #panneau h4{margin:14px 0 6px;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--texte-3);font-weight:500}
   #panneau .ok{color:#1d5c1d}#panneau .alerte{color:#9a6a00}#panneau .pb{color:#b3261e}
   #panneau table{border-collapse:collapse;width:100%;font-size:11px}
-  #panneau th,#panneau td{border:1px solid #eee;padding:3px 5px;text-align:left;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #panneau th{background:#f7f6f3}
+  #panneau td{font-family:var(--mono);font-size:10.5px}
+  #panneau th,#panneau td{border:1px solid var(--trait-leger);padding:3px 5px;text-align:left;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #panneau th{background:var(--surface)}
   #panneau ul{margin:4px 0;padding-left:18px}
   #modal,#apropos,#rapportcomplet,#methodo{position:absolute;inset:0;z-index:900;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center}
-  #modal .boite,#apropos .boite,#rapportcomplet .boite,#methodo .boite{background:#fff;border-radius:14px;padding:22px 26px;max-width:440px;font-size:14px;line-height:1.55;box-shadow:0 10px 34px rgba(0,0,0,.28)}
-  #modal h3{margin:0 0 10px}
+  #modal .boite,#apropos .boite,#rapportcomplet .boite,#methodo .boite{background:#fff;border-radius:6px;padding:22px 26px;max-width:440px;font-size:14px;line-height:1.55;box-shadow:0 10px 34px rgba(0,0,0,.28);overflow-x:hidden}
+  #modal h3,#apropos h3,#methodo h3{margin:0 0 10px;font-size:17px}
   #modal td{padding:3px 12px 3px 0;vertical-align:top}
   #modal td:first-child{font-weight:600;white-space:nowrap}
-  .fermer{float:right;border:none;background:#f0efeb;border-radius:50%;width:30px;height:30px;font-size:15px;line-height:30px;text-align:center;cursor:pointer;color:#333;padding:0;margin:-6px -8px 0 12px}
-  .fermer:hover{background:#e2ded6;color:#000}
-  .leaflet-popup-content table{border-collapse:collapse;font-size:12px}
+  .fermer{position:sticky;top:0;z-index:3;float:right;border:none;background:var(--surface);border-radius:3px;width:26px;height:26px;font-size:13px;line-height:26px;text-align:center;cursor:pointer;color:var(--encre);padding:0;margin:-6px -8px 0 12px}
+  .fermer:hover{background:var(--trait);color:var(--encre)}
+  .leaflet-popup-content table{border-collapse:collapse;font-family:var(--mono);font-size:11px}
   .leaflet-popup-content td{padding:2px 8px 2px 0;vertical-align:top}
-  .leaflet-popup-content td:first-child{font-weight:600;color:#555}
-  button:hover{border-color:#2d6a4f;background:#f0f7f3}
-  #ouvrir:hover{background:#245a42;border-color:#245a42}
-  button:focus-visible,#recherche:focus-visible{outline:2px solid #2d6a4f;outline-offset:1px}
+  .leaflet-popup-content td:first-child{font-weight:600;color:var(--texte-2)}
+  button:not(#ouvrir):not(#btnformats):not(#btnmethodo):not(.fermer):not(.flien):not(.formats):hover{border-color:var(--vert);background:var(--vert-pale)}
+  #ouvrir:hover{background:#3a641f;border-color:#3a641f;color:#fff}
+  button:focus-visible,#recherche:focus-visible,#logo:focus-visible{outline:2px solid var(--vert);outline-offset:1px}
   #chargement{position:absolute;inset:0;z-index:940;background:rgba(245,244,240,.9);display:none;align-items:center;justify-content:center}
   #chargement .boite{text-align:center;min-width:280px}
-  .spin{width:34px;height:34px;border:4px solid #dcd9d2;border-top-color:#2d6a4f;border-radius:50%;margin:0 auto 12px;animation:rot 0.9s linear infinite}
+  .spin{width:34px;height:34px;border:4px solid var(--trait);border-top-color:var(--vert);border-radius:50%;margin:0 auto 12px;animation:rot 0.9s linear infinite}
   @keyframes rot{to{transform:rotate(360deg)}}
-  #chargement .msg{font-size:13.5px;color:#444;margin:0}
-  #rapportcomplet .boite{max-width:860px;width:94vw;max-height:88vh;overflow:auto}
-  .chip{display:inline-block;font-size:11px;background:#eef0f6;border-radius:6px;padding:1px 8px;margin:2px 3px 0 0}
+  #chargement .msg{font-size:13px;color:var(--texte-2);margin:0}
+  #rapportcomplet .boite{max-width:860px;width:94vw;max-height:88vh;overflow-y:auto;overflow-x:hidden}
+  .chip{display:inline-block;font-family:var(--mono);font-size:10.5px;background:var(--surface);border-radius:3px;padding:1px 7px;margin:2px 3px 0 0}
   .chip.var{background:#fdf3d7;color:#9a6a00;font-weight:600}
-  #toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:950;background:#1f1f1f;color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;display:none;max-width:80%;box-shadow:0 4px 12px rgba(0,0,0,.25)}
-  .couche input[type=color]{width:20px;height:20px;padding:0;border:1px solid #ccc;border-radius:5px;background:none;cursor:pointer;flex:none}
-  #apropos .boite{max-width:540px;max-height:82vh;overflow:auto}
-  #apropos h4{margin:14px 0 4px;font-size:13px}
-  #apropos p,#methodo p{margin:4px 0;font-size:13px;color:#444;text-align:justify}
-  #methodo .boite{max-width:760px;max-height:88vh;overflow:auto}
-  #methodo .ref{font-size:11.5px;color:#777}
+  #toast{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:950;background:var(--encre);color:#fff;padding:9px 16px;border-radius:3px;font-size:13px;display:none;max-width:80%;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+  .couche input[type=color]{width:20px;height:20px;padding:0;border:1px solid var(--trait);border-radius:3px;background:none;cursor:pointer;flex:none}
+  #apropos .boite{max-width:540px;max-height:82vh;overflow-y:auto;overflow-x:hidden}
+  #apropos h4{margin:14px 0 4px;font-family:var(--mono);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--texte-3)}
+  #apropos p,#methodo p{margin:4px 0;font-size:13px;color:var(--texte-2)}
+  #methodo .boite{max-width:760px;max-height:88vh;overflow-y:auto;overflow-x:hidden}
+  #methodo .ref{font-size:12px;color:var(--texte-3)}
   #rapportcomplet table,#methodo table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 12px}
-  #rapportcomplet th,#methodo th{background:#f2f1ec;text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:#666;padding:7px 10px;border-bottom:2px solid #ddd}
-  #rapportcomplet td,#methodo td{padding:7px 10px;border-bottom:1px solid #eee;vertical-align:top}
-  #rapportcomplet tbody tr:nth-child(even) td,#methodo tbody tr:nth-child(even) td{background:#faf9f6}
+  #rapportcomplet th,#methodo th{background:var(--surface);text-align:left;font-family:var(--mono);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--texte-2);padding:7px 10px;border-bottom:2px solid var(--trait)}
+  #rapportcomplet td,#methodo td{padding:7px 10px;border-bottom:1px solid var(--trait-leger);vertical-align:top}
+  #rapportcomplet tbody tr:nth-child(even) td,#methodo tbody tr:nth-child(even) td{background:var(--surface)}
   #rapportcomplet h3{font-size:17px;margin:0 0 2px}
-  #rapportcomplet h4,#methodo h4{margin:20px 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#888;border-bottom:1px solid #e6e3dc;padding-bottom:5px}
+  #rapportcomplet h4,#methodo h4{margin:20px 0 8px;font-family:var(--mono);font-size:10.5px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--texte-3);border-bottom:1px solid var(--trait-leger);padding-bottom:5px}
   #rapportcomplet ul{margin:4px 0;padding-left:18px}
-  #methodo li{font-size:13px;color:#444;margin:3px 0}
+  #methodo li{font-size:13px;color:var(--texte-2);margin:3px 0}
   #rapportcomplet .ligneattr{cursor:pointer}
-  #rapportcomplet .ligneattr:hover td{background:#f0f7f3}
-  .hintattr{font-size:11.5px;color:#888;margin:2px 0 6px}
-  .lienmentions{font-size:12px;color:#999;margin-top:14px;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0}
-  #suggestions{position:absolute;top:calc(100% + 5px);left:0;min-width:280px;background:#fff;border:1px solid #ddd;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:960;display:none;max-height:230px;overflow:auto}
-  #suggestions div{padding:7px 11px;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
-  #suggestions div:hover{background:#f0f7f3}
+  #rapportcomplet .ligneattr:hover td{background:var(--vert-pale)}
+  .hintattr{font-size:12px;color:var(--texte-3);margin:2px 0 6px}
+  .table-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;margin:6px 0 12px;border:1px solid var(--trait-leger)}
+  .table-scroll table{width:max-content;min-width:100%;margin:0!important;border:0}
+  .table-scroll th,.table-scroll td{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #panneau .table-scroll{font-size:11px}
+  #panneau .table-scroll table{font-size:11px}
+  .apercu-impression{display:none}
+  #suggestions{position:absolute;top:calc(100% + 5px);left:0;min-width:280px;background:#fff;border:1px solid var(--trait);border-radius:3px;box-shadow:0 4px 12px rgba(0,0,0,.12);z-index:960;display:none;max-height:230px;overflow:auto}
+  #suggestions button{display:block;width:100%;padding:7px 11px;border:0;border-radius:0;background:#fff;text-align:left;font-size:12px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+  #suggestions button:hover,#suggestions button:focus-visible{background:var(--vert-pale)}
+  /* --- mobile (vitrine LinkedIn) : lisible et propre sous 640px --- */
+  @media (max-width:640px){
+    header{gap:8px;padding:8px 10px}
+    #recherche{flex:1 1 150px;width:auto}
+    #info{display:none}
+    #drop{padding:26px 18px;max-width:calc(100vw - 32px)}
+    #drop h2{font-size:17px}
+    #bandeau{flex-wrap:wrap;gap:8px;padding:8px 12px;font-size:13px}
+    #panneau{width:auto;left:12px;right:12px;max-width:none}
+    #couches{max-width:calc(100vw - 24px)}
+    #modal .boite,#apropos .boite,#methodo .boite{max-width:92vw;padding:18px 16px;max-height:86vh;overflow-y:auto;overflow-x:hidden}
+    .couche button{width:30px;height:28px}
+    .couche button svg{width:15px;height:15px}
+    .fermer{width:32px;height:32px;line-height:32px}
+    footer{padding:4px 10px}
+  }
 </style>
 </head>
 <body>
 <header>
-  <h1 id="logo" title="Accueil">Géo<span>Verif</span></h1>
-  <button id="ouvrir">Ouvrir</button>
-  <button id="btnaccueil">Accueil</button>
+  <h1 id="logo" role="button" tabindex="0" aria-label="Réinitialiser GeoVerif" title="Réinitialiser — retire les couches chargées">Geo<span>Verif</span></h1>
+  <button id="ouvrir">Ouvrir un livrable</button>
   <button id="btnformats">Formats</button>
   <button id="btnmethodo">Méthodologie</button>
-  <button id="btnfond">Vue aérienne</button>
   <button id="btnrapport" style="display:none">Contrôle qualité</button>
-  <span style="position:relative"><input id="recherche" placeholder="Rechercher un lieu…" autocomplete="off"><div id="suggestions"></div></span>
-  <span id="info">Vos fichiers ne quittent jamais votre ordinateur.</span>
+  <span style="position:relative"><input id="recherche" placeholder="Rechercher un lieu…" aria-label="Rechercher un lieu" title="Appuyez sur Entrée pour rechercher" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="suggestions" aria-expanded="false"><div id="suggestions" role="listbox" aria-label="Résultats de recherche"></div></span>
+  <span id="info" aria-live="polite"></span>
   <input type="file" id="fichier" multiple hidden
          accept=".zip,.geojson,.json,.shp,.dbf,.prj,.shx,.cpg,.gpkg,.kml,.kmz,.csv,.xlsx,.xls">
 </header>
 <div id="bandeau"></div>
 <div id="zone">
   <div id="map"></div>
-  <div id="couches"></div>
-  <div id="panneau"></div>
-  <div id="toast"></div>
-  <div id="chargement"><div class="boite"><div class="spin"></div><p class="msg">Chargement…</p></div></div>
-  <div id="rapportcomplet"><div class="boite"><div id="rccontenu"></div></div></div>
-  <div id="methodo"><div class="boite">
-    <button class="fermer" onclick="document.getElementById('methodo').style.display='none'">✕</button>
+  <button id="btnfond">Vue aérienne</button>
+  <div id="couches" aria-live="polite"></div>
+  <div id="panneau" role="region" aria-label="Rapport de la couche"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="chargement" role="status" aria-live="polite" aria-hidden="true"><div class="boite"><div class="spin"></div><p class="msg">Chargement…</p></div></div>
+  <div id="rapportcomplet" role="dialog" aria-modal="true" aria-label="Rapport complet"><div class="boite"><div id="rccontenu"></div></div></div>
+  <div id="methodo" role="dialog" aria-modal="true" aria-label="Méthodologie"><div class="boite">
+    <button class="fermer" onclick="fermerModale('methodo')" aria-label="Fermer la méthodologie">✕</button>
     <h3>Méthodologie de contrôle</h3>
-    <p class="ref">Ce que GéoVerif vérifie, comment, et ce qui reste à votre charge. Un verdict n'a de valeur que si l'on sait précisément ce qu'il engage.</p>
+    <p class="ref">Ce que GeoVerif vérifie, comment, et ce qui reste à votre charge. Un verdict n'a de valeur que si l'on sait précisément ce qu'il engage.</p>
 
     <h4>Le principe : contrôler ce qui est vrai partout</h4>
     <p>La « validité » d'une géométrie n'a pas de définition unique. QGIS s'appuie sur la bibliothèque GEOS, qui implémente la norme OGC Simple Features. Le modèle ESRI (shapefile, ArcGIS) accepte des configurations que cette norme rejette, comme un anneau qui se touche lui-même en un point, et utilise la convention d'orientation inverse. FME impose peu de contraintes à la lecture et confie la validation au transformateur GeometryValidator, dont les règles dépendent du paramétrage de chaque projet.</p>
-    <p>Conséquence concrète : une même couche peut être acceptée par un logiciel et rejetée par un autre, sans erreur d'aucun côté. GéoVerif ne tranche donc pas à la place d'un environnement cible. Il contrôle les <b>invariants communs</b> à tous les modèles, c'est-à-dire les défauts qui rendent la donnée inutilisable partout, et documente explicitement le reste comme hors périmètre.</p>
+    <p>Conséquence concrète : une même couche peut être acceptée par un logiciel et rejetée par un autre, sans erreur d'aucun côté. GeoVerif ne tranche donc pas à la place d'un environnement cible. Il contrôle les <b>invariants communs</b> à tous les modèles, c'est-à-dire les défauts qui rendent la donnée inutilisable partout, et documente explicitement le reste comme hors périmètre.</p>
 
     <h4>Synthèse des contrôles</h4>
     <table><thead><tr><th>Contrôle</th><th>Méthode</th><th>Limite principale</th></tr></thead><tbody>
-      <tr><td>Complétude du livrable</td><td>Présence des composants du shapefile (.shp, .dbf, .shx, .prj) selon la spécification ESRI (1998)</td><td>Sans objet pour les formats mono-fichier (GeoJSON, GeoPackage)</td></tr>
+      <tr><td>Complétude du livrable</td><td>Présence des composants attendus du shapefile (.shp, .dbf, .shx, .prj). Un composant absent classe le livrable comme incomplet et constitue un problème bloquant pour la réception.</td><td>Sans objet pour les formats mono-fichier (GeoJSON, GeoPackage)</td></tr>
       <tr><td>Référence spatiale</td><td>Lecture du WKT (.prj ou gpkg_spatial_ref_sys), reprojection proj4. À défaut, test des bornes physiques : |x| &gt; 180° ou |y| &gt; 90° signale une projection métrique non déclarée</td><td>Des coordonnées métriques restant dans les bornes angulaires ne sont pas détectées (cas marginal pour les emprises françaises, le Lambert 93 s'exprimant en centaines de km)</td></tr>
       <tr><td>Géométries</td><td>Détection des géométries nulles ou vides et des anneaux de moins de 4 sommets, fermeture incluse : rejetés par tous les modèles</td><td>Auto-intersections, orientation des anneaux et topologie : non testées (voir ci-dessous)</td></tr>
-      <tr><td>Doublons</td><td>Empreinte exacte (type + coordonnées sérialisées), comparaison stricte</td><td>Quasi-doublons non appariés (sommets réordonnés, précision différente). Désactivé au-delà de 50 000 entités, avec mention au rapport</td></tr>
+      <tr><td>Doublons</td><td>Empreinte exacte (type + coordonnées sérialisées), comparaison stricte</td><td>Quasi-doublons non appariés (sommets réordonnés, précision différente). Comparaison exhaustive dans la limite générale de l'outil (15 000 entités par couche)</td></tr>
       <tr><td>Attributs</td><td>Dénombrement des valeurs distinctes par champ, puis regroupement après normalisation (minuscules, espaces de bord). Les groupes à plusieurs graphies signalent une saisie incohérente</td><td>Pas de rapprochement par distance d'édition : sur des référentiels réels, il produit trop de faux positifs entre libellés légitimement proches</td></tr>
     </tbody></table>
 
-    <h4>Ce que GéoVerif ne vérifie pas</h4>
+    <h4>Ce que GeoVerif ne vérifie pas</h4>
     <p>Ces contrôles exigent un moteur géométrique complet (type GEOS) ou dépendent du cahier des charges de chaque projet. Ils restent à réaliser dans l'environnement de destination :</p>
     <ul>
       <li>les auto-intersections et l'inclusion des anneaux intérieurs dans l'anneau extérieur ;</li>
       <li>l'orientation des anneaux et la fermeture effective premier/dernier sommet ;</li>
       <li>les règles topologiques entre entités : chevauchements, lacunes, connexité de réseau.</li>
     </ul>
-    <p>Pour un usage réglementaire ou contractuel, une passe de validation dans le logiciel cible reste indispensable : « Vérifier la validité » de QGIS en méthode GEOS, ou GeometryValidator de FME paramétré selon votre cahier des charges. GéoVerif est un contrôle de réception, pas une certification.</p>
+    <p>Pour un usage réglementaire ou contractuel, une passe de validation dans le logiciel cible reste indispensable : « Vérifier la validité » de QGIS en méthode GEOS, ou GeometryValidator de FME paramétré selon votre cahier des charges. GeoVerif est un contrôle de réception, pas une certification.</p>
 
-    <h4>Exécution locale</h4>
-    <p>L'intégralité des contrôles s'exécute dans votre navigateur : lecture binaire des shapefiles (shpjs), des GeoPackage (SQLite compilé en WebAssembly, décodage WKB conforme au standard OGC GeoPackage), reprojection proj4. Aucune donnée n'est transmise à un serveur. Le rapport imprimable constitue une trace de contrôle horodatée ; il engage la méthodologie décrite ici, dans les limites qu'elle énonce.</p>
+    <h4>Contrôle local du fichier</h4>
+    <p>La lecture et l'intégralité des contrôles du fichier s'exécutent dans votre navigateur : lecture binaire des shapefiles (shpjs), des GeoPackage (SQLite compilé en WebAssembly, décodage WKB conforme au standard OGC GeoPackage), reprojection proj4. Aucun fichier importé, attribut ou géométrie exacte n'est envoyé à GeoVerif. Les fonds de carte et la recherche de lieu utilisent toutefois des services cartographiques tiers, comme détaillé dans les mentions de confidentialité. Le rapport imprimable constitue une trace de contrôle horodatée ; il engage la méthodologie décrite ici, dans les limites qu'elle énonce.</p>
 
     <h4>Références</h4>
     <p class="ref">OGC 06-103r4, Simple Feature Access, Part 1: Common Architecture ; ESRI, Shapefile Technical Description, 1998 ; OGC GeoPackage Encoding Standard ; ISO 19107, Information géographique, Schéma spatial.</p>
   </div></div>
-  <div id="modal"><div class="boite">
-    <button class="fermer" onclick="document.getElementById('modal').style.display='none'">✕</button>
+  <div id="modal" role="dialog" aria-modal="true" aria-label="Formats pris en charge"><div class="boite">
+    <button class="fermer" onclick="fermerModale('modal')" aria-label="Fermer la liste des formats">✕</button>
     <h3>Formats pris en charge</h3>
     <table>
       <tr><td>Shapefile</td><td>archive .zip, ou fichiers .shp + .dbf + .prj sélectionnés ensemble</td></tr>
-      <tr><td>GeoPackage</td><td>.gpkg : toutes les couches vecteur, quel que soit le système de coordonnées</td></tr>
+      <tr><td>GeoPackage</td><td>.gpkg : toutes les couches vecteur, quel que soit le système de coordonnées — nécessite la version en ligne</td></tr>
       <tr><td>GeoJSON</td><td>.geojson, .json</td></tr>
       <tr><td>KML / KMZ</td><td>.kml, .kmz (Google Earth)</td></tr>
       <tr><td>CSV / Excel</td><td>.csv, .xlsx : les colonnes de coordonnées (latitude/longitude, x/y) sont détectées automatiquement</td></tr>
     </table>
     <p style="color:#888;font-size:12px;margin-bottom:0">Non pris en charge : rasters, GML, formats BIM (IFC, RVT).</p>
   </div></div>
-  <div id="apropos"><div class="boite">
-    <button class="fermer" onclick="document.getElementById('apropos').style.display='none'">✕</button>
+  <div id="apropos" role="dialog" aria-modal="true" aria-label="À propos et mentions légales"><div class="boite">
+    <button class="fermer" onclick="fermerModale('apropos')" aria-label="Fermer les mentions légales">✕</button>
     <h3>À propos & mentions légales</h3>
-    <p class="ref" style="font-size:11.5px;color:#999">GéoVerif v1.0 · juillet 2026</p>
+    <p class="ref" style="font-size:12px;color:var(--texte-3)">GeoVerif v1.0 · juillet 2026</p>
     <h4>Éditeur</h4>
-    <p>Neura4 — SIREN : 979 160 116<br>
+    <p>GeoVerif — SIREN : 979 160 116<br>
+    Responsable de la publication : Lisa Rousseau<br>
     Contact : contact.geoverif@gmail.com</p>
     <h4>Hébergement</h4>
-    <p>GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr St, San Francisco, CA 94107, États-Unis.</p>
+    <p>GitHub Pages — GitHub, Inc., 88 Colin P. Kelly Jr St, San Francisco, CA 94107, États-Unis — +1 877 448 4820.</p>
     <h4>Confidentialité</h4>
-    <p>Vos fichiers sont lus et traités <strong>localement, dans votre navigateur</strong>. Ils ne sont jamais envoyés, stockés ni analysés par un serveur. GéoVerif n'utilise ni cookie ni traceur, et ne collecte aucune donnée personnelle.</p>
-    <p>GéoVerif utilise GoatCounter, un outil de mesure d'audience open source, sans cookie et ne collectant aucune donnée personnelle identifiante.</p>
-    <p>Deux fonctions impliquent des requêtes vers des services tiers : l'affichage des fonds de carte (OpenStreetMap, Esri) et la recherche de lieu (Nominatim, OpenStreetMap Foundation). Votre adresse IP est visible de ces services, comme pour tout site web ; le contenu de vos fichiers ne leur est jamais transmis.</p>
+        <p>Vos fichiers sont lus et contrôlés <strong>localement, dans votre navigateur</strong>. Aucun fichier importé, attribut ni géométrie exacte n'est envoyé, stocké ou analysé par GeoVerif. GeoVerif n'utilise aucun cookie et ne stocke aucun fichier importé. Les ressources de l'application peuvent être mises en cache sur votre appareil pour permettre un usage hors ligne.</p>
+        <p>La fréquentation est mesurée avec GoatCounter, un outil open source sans cookie : pages vues, référent et type de navigateur sont comptabilisés de façon agrégée, sans identifiant individuel ni suivi entre sites (base légale : intérêt légitime, art. 6.1.f RGPD — <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener">politique de confidentialité de GoatCounter</a>).</p>
+    <p>Deux fonctions impliquent des requêtes vers des services tiers : l'affichage des fonds de carte (OpenStreetMap, Esri) et la recherche de lieu (Nominatim, OpenStreetMap Foundation). Les fournisseurs de fonds reçoivent votre adresse IP, l'origine de l'application et les coordonnées des tuiles correspondant approximativement à la zone visualisée. Nominatim reçoit en plus le texte du lieu que vous recherchez. Le fichier importé, ses attributs et ses géométries exactes ne leur sont jamais transmis.</p>
+    <p>Pour toute question ou pour exercer vos droits (accès, rectification, effacement, opposition) : contact.geoverif@gmail.com.</p>
     <h4>Données et licences</h4>
-    <p>Fonds de carte © contributeurs OpenStreetMap (licence ODbL) · Imagerie © Esri, Maxar, Earthstar Geographics. GéoVerif s'appuie sur des bibliothèques open source (licences MIT, BSD, Apache 2.0) : Leaflet, shpjs, sql.js, proj4js, PapaParse, SheetJS, JSZip, toGeoJSON.</p>
+    <p>Fonds de carte © contributeurs OpenStreetMap (licence ODbL) · Imagerie © Esri, Maxar, Earthstar Geographics. GeoVerif s'appuie sur des bibliothèques open source (licences MIT, BSD, Apache 2.0) : Leaflet, shpjs, sql.js, proj4js, PapaParse, SheetJS, JSZip, toGeoJSON.</p>
     <h4>Responsabilité</h4>
-    <p>GéoVerif est un outil de visualisation et de contrôle fourni « en l'état », sans garantie. Il ne remplace pas une validation par un logiciel SIG pour tout usage réglementaire ou contractuel.</p>
+    <p>GeoVerif est un outil de visualisation et de contrôle fourni « en l'état », sans garantie. Il ne remplace pas une validation par un logiciel SIG pour tout usage réglementaire ou contractuel.</p>
   </div></div>
   <div id="accueil">
-    <div id="drop">
-      <h2>Vérifiez la validité de votre livrable SIG</h2>
-      <p><b>Verdict en 3 secondes</b> — déposez le fichier qu'on vous a envoyé :<br>
-      complétude du livrable, projection, analyse géométrique et attributaire.<br>
-      <span style="color:#1d5c1d">✓ exploitable</span> · <span style="color:#9a6a00">⚠ réserves</span> · <span style="color:#b3261e">✗ bloquant</span></p>
-      <p class="formats">Shapefile · GeoPackage · GeoJSON · KML · CSV/Excel — jusqu'à 5 couches superposées</p>
-      <p id="erreur"></p>
-      <button class="lienmentions" onclick="event.stopPropagation();document.getElementById('apropos').style.display='flex'">À propos & mentions légales</button>
+    <div id="drop" role="button" tabindex="0" aria-label="Déposer ou choisir un livrable SIG à contrôler">
+      <h2>Déposez votre livrable SIG</h2>
+      <p>Complétude, projection, géométries, attributs.<br>Verdict immédiat&#8239;:</p>
+      <p class="verdicts"><span class="badge ok">Exploitable</span><span class="badge alerte">Réserves</span><span class="badge pb">Bloquant</span></p>
+      <button class="formats" title="Détail des formats pris en charge" onclick="event.stopPropagation();ouvrirModale('modal',this)">shapefile · geopackage · geojson · kml/kmz · csv/xlsx · 5&nbsp;couches max</button>
+      <p id="erreur" role="alert"></p>
+      <p class="prive"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Contrôle local du fichier&#8239;: aucun fichier importé n'est envoyé.</p>
     </div>
   </div>
 </div>
+<footer>
+  <span>GeoVerif v1.0</span>
+  <button class="flien" onclick="ouvrirModale('apropos',this)">À propos & mentions légales</button>
+</footer>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/shpjs@6.1.0/dist/shp.js"></script>
+<script src="libs/leaflet.js"></script>
+<script src="libs/shp.js"></script>
 <script>
+// Diagnostic silencieux : si les bibliothèques locales manquent (fichier ouvert hors du dossier
+// du projet), on l'explique en console au lieu d'un « L is not defined » cryptique. (Supprimable.)
+(function () {
+  const absentes = [];
+  if (typeof L === 'undefined') absentes.push('libs/leaflet.js');
+  if (typeof shp === 'undefined') absentes.push('libs/shp.js');
+  if (absentes.length) console.error(
+    'GeoVerif : fichiers introuvables — ' + absentes.join(', ') +
+    '. Ce fichier doit être à la racine du projet, à côté du dossier libs/. ' +
+    'Test conseillé : « python -m http.server » dans le dossier du projet, puis http://localhost:8000/');
+})();
 
 // Parseur WKB (géométries binaires standard) — pur JS.
 function lireWKBGeom(dv, o) {
@@ -238,7 +318,7 @@ function lireGeomGpkg(blob) {
   const dv = new DataView(blob.buffer, blob.byteOffset, blob.byteLength);
   if (dv.getUint8(0) !== 0x47 || dv.getUint8(1) !== 0x50) throw new Error('Blob GPKG invalide');
   const flags = dv.getUint8(3);
-  if ((flags >> 5) & 1) return null; // géométrie vide
+  if ((flags >> 4) & 1) return null; // bit Y (4) : géométrie vide ; le bit 5 indique un encodage étendu
   const envInd = (flags >> 1) & 7;
   const tailleEnv = [0, 32, 48, 48, 64][envInd] ?? 0;
   return lireWKBGeom(dv, 8 + tailleEnv).geom;
@@ -251,45 +331,81 @@ function transformerCoords(geom, tr) {
   return {...geom, coordinates: marche(geom.coordinates)};
 }
 
-// Lit toutes les couches vecteur d'un GeoPackage. SQL = module sql.js, proj = proj4.
-function lireGeoPackage(SQL, proj, buf) {
-  const db = new SQL.Database(new Uint8Array(buf));
-  const res = db.exec(
-    "SELECT c.table_name, g.column_name, g.srs_id FROM gpkg_contents c " +
-    "JOIN gpkg_geometry_columns g ON c.table_name = g.table_name " +
-    "WHERE c.data_type = 'features'");
-  const couches = [];
-  if (!res.length) { db.close(); return couches; }
-  for (const [table, colGeom, srsId] of res[0].values) {
-    let tr = null, crsNom = 'EPSG:' + srsId;
-    if (srsId !== 4326) {
-      const d = db.exec("SELECT definition, srs_name FROM gpkg_spatial_ref_sys WHERE srs_id = " + Number(srsId));
-      if (d.length) {
-        crsNom = d[0].values[0][1] || crsNom;
-        try { const t = proj(d[0].values[0][0], 'WGS84'); tr = c => t.forward(c); }
-        catch (e) { crsNom += ' (reprojection impossible)'; }
-      }
-    }
-    const rows = db.exec('SELECT * FROM "' + String(table).replace(/"/g, '""') + '"');
-    const features = [];
-    if (rows.length) {
-      const cols = rows[0].columns, iGeom = cols.indexOf(colGeom);
-      for (const v of rows[0].values) {
-        const props = {};
-        cols.forEach((c, i) => { if (i !== iGeom && c !== 'fid') props[c] = v[i]; });
-        let geom = null;
-        if (v[iGeom]) {
-          geom = lireGeomGpkg(v[iGeom]);
-          if (geom && tr) geom = transformerCoords(geom, tr);
-        }
-        features.push({type: 'Feature', geometry: geom, properties: props});
-      }
-    }
-    couches.push({nom: table, crs: crsNom,
-                  fc: {type: 'FeatureCollection', features}});
+// Le type d'un champ DBF est décrit dans son en-tête, même quand toutes ses valeurs sont NULL.
+function typesChampsDbf(buf) {
+  const octets = new Uint8Array(buf);
+  if (octets.length < 33) return {};
+  const longueurEntete = new DataView(buf).getUint16(8, true);
+  const fin = Math.min(Math.max(32, longueurEntete - 1), octets.length);
+  const decodeur = new TextDecoder('windows-1252');
+  const correspondance = {
+    C: 'string', M: 'string', G: 'string', P: 'string',
+    N: 'number', F: 'number', I: 'number', B: 'number', O: 'number', Y: 'number',
+    L: 'boolean', D: 'date', T: 'date', '@': 'date'
+  };
+  const resultat = {};
+  for (let pos = 32; pos + 31 < fin && octets[pos] !== 0x0d; pos += 32) {
+    const nom = decodeur.decode(octets.slice(pos, pos + 11)).split('\0')[0].trim();
+    const code = String.fromCharCode(octets[pos + 11]).toUpperCase();
+    if (nom) resultat[nom] = correspondance[code] || 'string';
   }
-  db.close();
-  return couches;
+  return resultat;
+}
+
+// Lit toutes les couches vecteur d'un GeoPackage. SQL = module sql.js, proj = proj4.
+async function lireGeoPackage(SQL, proj, buf) {
+  const db = new SQL.Database(new Uint8Array(buf));
+  const couches = [];
+  try {
+    const res = db.exec(
+      "SELECT c.table_name, g.column_name, g.srs_id FROM gpkg_contents c " +
+      "JOIN gpkg_geometry_columns g ON c.table_name = g.table_name " +
+      "WHERE c.data_type = 'features'");
+    if (!res.length) return couches;
+    for (const [table, colGeom, srsId] of res[0].values) {
+      const nomSql = String(table).replace(/"/g, '""');
+      // comptage AVANT décodage : une couche hors gabarit est refusée en quelques millisecondes
+      const nb = db.exec('SELECT COUNT(*) FROM "' + nomSql + '"')[0].values[0][0];
+      if (nb > MAX_ENTITES) {
+        couches.push({nom: table, refus: nb.toLocaleString('fr-FR') +
+          ' entités — au-delà de la limite de l\u2019outil (' + MAX_ENTITES.toLocaleString('fr-FR') + ' par couche).'});
+        continue;
+      }
+      let tr = null, crsNom = 'EPSG:' + srsId;
+      if (srsId !== 4326) {
+        const d = db.exec("SELECT definition, srs_name FROM gpkg_spatial_ref_sys WHERE srs_id = " + Number(srsId));
+        if (d.length) {
+          crsNom = d[0].values[0][1] || crsNom;
+          try { const t = proj(d[0].values[0][0], 'WGS84'); tr = c => t.forward(c); }
+          catch (e) { crsNom += ' (reprojection impossible)'; }
+        }
+      }
+      chargement('Lecture de \u00ab ' + table + ' \u00bb (' + nb.toLocaleString('fr-FR') + ' entit\u00e9s)\u2026');
+      await souffle();
+      const rows = db.exec('SELECT * FROM "' + nomSql + '"');
+      const features = [];
+      let geomIllisibles = 0, k = 0;
+      if (rows.length) {
+        const cols = rows[0].columns, iGeom = cols.indexOf(colGeom);
+        for (const v of rows[0].values) {
+          if (++k % 2000 === 0) await souffle();  // le spinner respire
+          const props = {};
+          cols.forEach((c, i) => { if (i !== iGeom && c !== 'fid') props[c] = v[i]; });
+          let geom = null;
+          if (v[iGeom]) {
+            try {
+              geom = lireGeomGpkg(v[iGeom]);
+              if (geom && tr) geom = transformerCoords(geom, tr);
+            } catch (e) { geom = null; geomIllisibles++; }  // un blob corrompu n'emporte pas la couche
+          }
+          features.push({type: 'Feature', geometry: geom, properties: props});
+        }
+      }
+      couches.push({nom: table, crs: crsNom, geomIllisibles,
+                    fc: {type: 'FeatureCollection', features}});
+    }
+    return couches;
+  } finally { db.close(); }
 }
 
 // Détection colonnes coordonnées pour CSV/Excel
@@ -305,32 +421,51 @@ function lignesVersPoints(lignes, entetes) {
   const xy = detecterXY(entetes);
   if (!xy) return null;
   const features = [];
+  let ignorees = 0;
   for (const l of lignes) {
+    if (!l || !l.length || l.every(v => v === '' || v == null)) continue;  // lignes totalement vides : non comptées
     const x = parseFloat(l[xy.ix]), y = parseFloat(l[xy.iy]);
-    if (!isFinite(x) || !isFinite(y)) continue;
+    if (!isFinite(x) || !isFinite(y)) { ignorees++; continue; }
     const props = {};
     entetes.forEach((e, i) => props[e] = l[i]);
     features.push({type: 'Feature', geometry: {type: 'Point', coordinates: [x, y]}, properties: props});
   }
-  return {type: 'FeatureCollection', features};
+  return {fc: {type: 'FeatureCollection', features}, ignorees};
 }
 
 
 const $ = s => document.querySelector(s);
+const souffle = () => new Promise(r => setTimeout(r, 15));  // rend la main au navigateur
+const pluriel = (n, sing, plur) => n.toLocaleString('fr-FR') + '\u00a0' + (n === 1 ? sing : (plur || sing + 's'));
+const TYPES_FR = {Point: ['point', 'points'], MultiPoint: ['multipoint', 'multipoints'],
+  LineString: ['ligne', 'lignes'], MultiLineString: ['multiligne', 'multilignes'],
+  Polygon: ['polygone', 'polygones'], MultiPolygon: ['multipolygone', 'multipolygones'],
+  GeometryCollection: ['collection', 'collections']};
+const typeFr = (t, n) => TYPES_FR[t] ? TYPES_FR[t][n === 1 ? 0 : 1] : t;
 const MAX_COUCHES = 5;                       // couches superposées max
 const MAX_ENTITES = 15000;                   // au-delà : refus explicite (outil navigateur, pas SIG de bureau)
 const TAILLE_AVERTIR = 60 * 1024 * 1024;     // 60 Mo : message avertissement
 const TAILLE_REFUS = 250 * 1024 * 1024;      // 250 Mo : refus
-const PALETTE = ['#2d6a4f','#b5651d','#1d4e89','#8e44ad','#c0392b','#0f766e'];
-const carte = L.map('map').setView([46.6, 2.4], 6);
-const fondPlan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {maxZoom: 19, attribution: '© OpenStreetMap'});
+const MAX_ENTREES_ARCHIVE = 1000;             // évite les archives pathologiques ou malveillantes
+const PALETTE = ['#589632','#b5651d','#1d4e89','#8e44ad','#c0392b','#0f766e'];
+const BORNES_MONDE = L.latLngBounds([[-85.05112878, -180], [85.05112878, 180]]);
+const carte = L.map('map', {minZoom: 2, maxBounds: BORNES_MONDE, maxBoundsViscosity: 1}).setView([46.6, 2.4], 6);
+const fondPlan = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom: 19, noWrap: true, bounds: BORNES_MONDE, errorTileUrl: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27256%27 height=%27256%27%3E%3Crect width=%27256%27 height=%27256%27 fill=%27%23edece7%27/%3E%3C/svg%3E', attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'});
 const fondAerien = L.tileLayer(
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  {maxZoom: 19, attribution: '© Esri, Maxar, Earthstar Geographics'});
+  {maxZoom: 19, noWrap: true, bounds: BORNES_MONDE, errorTileUrl: 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27256%27 height=%27256%27%3E%3Crect width=%27256%27 height=%27256%27 fill=%27%23edece7%27/%3E%3C/svg%3E', attribution: '© Esri, Maxar, Earthstar Geographics'});
 fondPlan.addTo(carte);
 let aerien = false;
 const couches = [];
+const refuses = [];
+let panneauRefus = -1;
+let idxCourant = -1;   // couche du dernier rapport ouvert : le bandeau la suit
+
+const nombreElements = () => couches.length + refuses.length;
+const cleFichier = f => `${String(f.name).toLowerCase()}|${Number(f.size)}|${Number(f.lastModified || 0)}`;
+const sourceDejaPresente = cle => !!cle &&
+  (couches.some(c => c.sourceKey === cle) || refuses.some(r => r.sourceKey === cle));
 
 // --- chargement des libs optionnelles ---
 const _libs = {};
@@ -343,13 +478,23 @@ function chargerScript(url, globale) {
   });
   return _libs[url];
 }
-const libSql = () => chargerScript('https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js','initSqlJs')
-  .then(init => init({locateFile: f => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/' + f}));
-const libProj = () => chargerScript('https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js','proj4');
-const libKml = () => chargerScript('https://unpkg.com/@tmcw/togeojson@5.8.1/dist/togeojson.umd.js','toGeoJSON');
-const libCsv = () => chargerScript('https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js','Papa');
-const libXlsx = () => chargerScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','XLSX');
-const libZip = () => chargerScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js','JSZip');
+const libSql = () => chargerScript('libs/sql-wasm.js','initSqlJs')
+  .then(init => init({locateFile: f => 'libs/' + f}));
+const libProj = () => chargerScript('libs/proj4.js','proj4');
+const libKml = () => chargerScript('libs/togeojson.umd.js','toGeoJSON');
+const libCsv = () => chargerScript('libs/papaparse.min.js','Papa');
+const libXlsx = () => chargerScript('libs/xlsx.full.min.js','XLSX');
+const libZip = () => chargerScript('libs/jszip.min.js','JSZip');
+
+function problemeArchive(archive) {
+  const entrees = Object.values(archive.files || {}).filter(e => !e.dir);
+  if (entrees.length > MAX_ENTREES_ARCHIVE)
+    return `Archive contenant ${entrees.length.toLocaleString('fr-FR')} fichiers — limite de sécurité : ${MAX_ENTREES_ARCHIVE.toLocaleString('fr-FR')}.`;
+  const decompressee = entrees.reduce((n, e) => n + Number(e._data && e._data.uncompressedSize || 0), 0);
+  if (decompressee > TAILLE_REFUS)
+    return `Archive décompressée de ${Math.round(decompressee / 1048576)} Mo — limite de sécurité : ${Math.round(TAILLE_REFUS / 1048576)} Mo.`;
+  return null;
+}
 
 // --- analyse de santé (v1, + nom de CRS externe) ---
 function nomCRS(prj) {
@@ -369,12 +514,27 @@ function anneauxPolygone(g) {
   if (g.type === 'MultiPolygon') return g.coordinates.flat();
   return [];
 }
-function analyser(fc, meta = {}) {
+// Chaque constat possède un identifiant stable. Une règle peut en remplacer une autre
+// plus générale : un même défaut n'apparaît ainsi qu'une fois dans le rapport.
+function ajouterRegle(r, id, niveau, message, remplace = []) {
+  if (!r._regles) r._regles = new Map();
+  for (const ancien of remplace) r._regles.delete(ancien);
+  if (!r._regles.has(id)) r._regles.set(id, {niveau, message});
+}
+function finaliserRegles(r) {
+  const regles = [...(r._regles || new Map()).values()];
+  r.anomalies = regles.filter(x => x.niveau === 'probleme').map(x => x.message);
+  r.avertissements = regles.filter(x => x.niveau === 'avertissement').map(x => x.message);
+  delete r._regles;
+}
+async function analyser(fc, meta = {}) {
+  let _k = 0;
   const feats = fc.features || [];
   const r = {nb: feats.length, types:{}, champs:[], apercu:[], emprise:null,
              crs: meta.crsNom || nomCRS(meta.prj), anomalies:[], avertissements:[]};
   if (!feats.length) {
-    r.anomalies.push('Couche vide : aucune entité — livrable inexploitable en l\'état.');
+    ajouterRegle(r, 'couche-vide', 'probleme', 'Couche vide : aucune entité — livrable inexploitable en l\'état.');
+    finaliserRegles(r);
     r.verdict = 'rouge'; r.completude = 'inexploitable';
     r.controles = [{nom: 'Lecture du fichier', etat: 'pb', detail: 'aucune entité lisible'}];
     return r;
@@ -382,6 +542,7 @@ function analyser(fc, meta = {}) {
   let vides=0, degeneres=0, horsMonde=0;
   let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
   for (const f of feats) {
+    if (++_k % 4000 === 0) await souffle();
     const g = f.geometry;
     if (!g || (!g.coordinates && !g.geometries) || (g.coordinates && !g.coordinates.length)) { vides++; continue; }
     r.types[g.type] = (r.types[g.type]||0)+1;
@@ -392,52 +553,75 @@ function analyser(fc, meta = {}) {
     }
   }
   if (isFinite(minX)) r.emprise = [minX,minY,maxX,maxY];
-  if (vides) r.anomalies.push(`${vides} entité(s) sans géométrie — elles ne s'afficheront pas dans QGIS ou ArcGIS.`);
-  if (degeneres) r.anomalies.push(`${degeneres} polygone(s) à géométrie dégénérée (moins de 4 points) — affichage et calculs de surface faux.`);
-  if (horsMonde && !meta.reprojetee) r.anomalies.push(
-    "Coordonnées hors limites latitude/longitude : projection métrique probable (Lambert 93 ?) sans référence fournie — le positionnement sera faux.");
-  for (const mq of (meta.manquants || [])) {
-    if (mq.bloquant) r.anomalies.push(mq.message);
-    else r.avertissements.push(mq.message);
+  const manquants = meta.manquants || [];
+  const prjManquant = manquants.some(m => m.fichier === '.prj');
+  if (vides) ajouterRegle(r, 'geometries-vides', 'probleme',
+    pluriel(vides, 'entité') + ' sans géométrie' +
+    (meta.geomIllisibles ? `, dont ${pluriel(meta.geomIllisibles, 'géométrie')} binaire illisible` : '') +
+    ' — ' + (vides === 1 ? 'invisible' : 'invisibles') + ' dans QGIS ou ArcGIS.');
+  if (degeneres) ajouterRegle(r, 'geometries-degenerees', 'probleme',
+    pluriel(degeneres, 'polygone') + (degeneres === 1 ? ' à géométrie dégénérée' : ' à géométries dégénérées') +
+    ' (moins de 4 points) — affichage et calculs de surface faux.');
+  if (meta.lignesIgnorees) ajouterRegle(r, 'lignes-coordonnees-invalides', 'avertissement',
+    pluriel(meta.lignesIgnorees, 'ligne') + ' sans coordonnées valides ' +
+    (meta.lignesIgnorees === 1 ? 'ignorée' : 'ignorées') + ' à l\u2019import (cellules vides ou non numériques).');
+  if (horsMonde && !meta.reprojetee) ajouterRegle(r, 'scr-hors-limites', 'probleme',
+    prjManquant
+      ? 'Fichier .prj absent et coordonnées hors des limites latitude/longitude : projection métrique probable (Lambert 93 ?) — le positionnement ne peut pas être fiabilisé.'
+      : 'Coordonnées hors des limites latitude/longitude : projection métrique probable (Lambert 93 ?) sans référence exploitable — le positionnement ne peut pas être fiabilisé.');
+  else if (horsMonde && meta.reprojetee) ajouterRegle(r, 'coordonnees-hors-wgs84', 'probleme',
+    pluriel(horsMonde, 'coordonnée') + ' hors des limites latitude/longitude alors que le format impose le WGS 84 — données corrompues ou mal encodées.');
+  for (const mq of manquants) {
+    if (mq.fichier === '.prj' && horsMonde && !meta.reprojetee) continue;
+    ajouterRegle(r, 'livrable-manquant-' + mq.fichier, mq.bloquant ? 'probleme' : 'avertissement', mq.message);
   }
   if (!r.crs && !meta.reprojetee && !(meta.manquants || []).some(m => m.fichier === '.prj'))
-    r.avertissements.push('Système de coordonnées non fourni — WGS84 supposé, positionnement à vérifier.');
+    ajouterRegle(r, 'scr-non-fourni', 'avertissement', 'Système de coordonnées non fourni — WGS 84 supposé, positionnement à vérifier.');
   // Doublons de géométrie (détection simple, plafonnée pour la performance)
   let doublons = 0;
   const doublonsVerifies = feats.length <= 50000;
   if (feats.length && doublonsVerifies) {
     const vus = new Map();
     for (const f of feats) {
+      if (++_k % 4000 === 0) await souffle();
       if (!f.geometry || !f.geometry.coordinates) continue;
       const cle = f.geometry.type + JSON.stringify(f.geometry.coordinates);
       vus.set(cle, (vus.get(cle) || 0) + 1);
     }
     doublons = [...vus.values()].reduce((n, c) => n + (c - 1), 0);
-    if (doublons) r.avertissements.push(
-      `${doublons} géométrie(s) en doublon exact — entités superposées identiques, souvent un défaut d'export du prestataire.`);
+    if (doublons) ajouterRegle(r, 'geometries-doublons', 'avertissement',
+      pluriel(doublons, 'géométrie') + " en doublon exact — entités superposées identiques, souvent un défaut d'export du prestataire.");
   }
   const props0 = feats.map(f => f.properties || {});
   const noms = [...new Set(props0.flatMap(p => Object.keys(p)))];
+  const typesDeclares = new Map(Object.entries(meta.typesChamps || {}).map(([n, t]) => [n.toLowerCase(), t]));
   let champsVides = 0;
+  const nomsChampsVides = [];
   for (const n of noms) {
-    const vals = props0.map(p => p[n]).filter(v => v!==null && v!==undefined && v!=='');
+    const vals = props0.map(p => p[n]).filter(v => !estVide(v));
     const taux = Math.round(100*vals.length/feats.length);
-    r.champs.push({nom:n, type: vals.length ? typeof vals[0] : '?', taux});
-    if (!taux) { champsVides++; r.avertissements.push(`Champ « ${n} » entièrement vide.`); }
+    r.champs.push({nom:n, type: vals.length ? typeAttribut(vals[0]) : (typesDeclares.get(n.toLowerCase()) || '?'), taux});
+    if (!vals.length) { champsVides++; nomsChampsVides.push(n); }
   }
+  if (nomsChampsVides.length) ajouterRegle(r, 'champs-entierement-vides', 'avertissement',
+    pluriel(nomsChampsVides.length, 'champ') + ' entièrement ' + (nomsChampsVides.length === 1 ? 'vide' : 'vides') +
+    ' : ' + nomsChampsVides.slice(0, 8).map(n => `« ${n} »`).join(', ') +
+    (nomsChampsVides.length > 8 ? `, et ${nomsChampsVides.length - 8} autre${nomsChampsVides.length - 8 === 1 ? '' : 's'}` : '') + '.');
   if (!noms.length && !(meta.manquants || []).some(m => m.fichier === '.dbf'))
-    r.avertissements.push('Aucune table attributaire — les entités n\'ont aucune donnée associée.');
+    ajouterRegle(r, 'table-attributaire-absente', 'avertissement', 'Aucune table attributaire — les entités n\'ont aucune donnée associée.');
   r.apercu = props0.slice(0,5);
   // Contrôle attributaire : valeurs distinctes par champ + variantes de casse/espaces
   const lignesProfil = props0.length > 50000 ? props0.slice(0, 50000) : props0;
   r.attributsPartiels = props0.length > 50000;
+  r.attributsLimites = noms.length > 40;
   r.attributs = [];
   for (const n of noms.slice(0, 40)) {
+    await souffle();
     const comptes = new Map();
     for (const p of lignesProfil) {
       const v = p[n];
-      if (v === null || v === undefined || v === '') continue;
-      const s = String(v);
+      if (estVide(v)) continue;
+      const s = String(fmtVal(v));
       comptes.set(s, (comptes.get(s) || 0) + 1);
     }
     const tri = [...comptes.entries()].sort((a, b) => b[1] - a[1]);
@@ -449,31 +633,36 @@ function analyser(fc, meta = {}) {
       groupes.get(cle).push(v);
     }
     const variantes = [...groupes.values()].filter(g => g.length > 1);
-    if (variantes.length) r.avertissements.push(
-      `Champ « ${n} » : valeurs identiques à la casse/aux espaces près (ex : ${variantes[0].slice(0, 3).join(' / ')}) — saisies incohérentes probables.`);
+    if (variantes.length) ajouterRegle(r, 'variantes-' + n, 'avertissement',
+      `Champ « ${n} » : valeurs identiques à la casse ou aux espaces près (ex. ${variantes[0].slice(0, 3).join(' / ')}) — saisies incohérentes probables.`);
     r.attributs.push({nom: n, distinct: comptes.size, valeurs: tri.slice(0, 200),
                       tronque: tri.length > 200, variantes});
   }
-  const mq = meta.manquants || [];
+  const mq = manquants;
+  const dbfManquant = mq.some(m => m.fichier === '.dbf');
+  r.horsMonde = horsMonde > 0;
   r.controles = [
     {nom: 'Complétude du livrable',
-     etat: mq.length ? 'alerte' : (meta.completudeConnue ? 'ok' : 'na'),
-     detail: mq.length ? 'manquant(s) : ' + mq.map(m => m.fichier).join(', ')
+     etat: mq.length ? 'pb' : (meta.completudeConnue ? 'ok' : 'na'),
+     statut: mq.length ? 'Incomplet' : undefined,
+     detail: mq.length ? (mq.length > 1 ? 'manquants : ' : 'manquant : ') + mq.map(m => m.fichier).join(', ')
            : (meta.completudeConnue ? 'tous les fichiers attendus sont présents' : 'non applicable à ce format')},
     {nom: 'Système de coordonnées',
-     etat: (horsMonde && !meta.reprojetee) ? 'pb' : ((!r.crs && !meta.reprojetee) ? 'alerte' : 'ok'),
+     etat: horsMonde ? 'pb' : ((!r.crs && !meta.reprojetee) ? 'alerte' : 'ok'),
      detail: r.crs ? r.crs : (meta.reprojetee ? 'reprojeté automatiquement' : 'non fourni — WGS84 supposé')},
     {nom: 'Validité des géométries',
      etat: (vides || degeneres) ? 'pb' : 'ok',
-     detail: (vides || degeneres) ? `${vides} vide(s), ${degeneres} dégénérée(s)` : `${r.nb} géométrie(s) lisibles`},
+     detail: (vides || degeneres) ? pluriel(vides, 'vide') + ', ' + pluriel(degeneres, 'dégénérée') : pluriel(r.nb, 'géométrie') + (r.nb > 1 ? ' lisibles' : ' lisible')},
     {nom: 'Doublons de géométrie',
      etat: !doublonsVerifies ? 'na' : (doublons ? 'alerte' : 'ok'),
      detail: !doublonsVerifies ? 'non vérifié (couche très volumineuse)'
-           : (doublons ? doublons + ' doublon(s) exact(s)' : 'aucun doublon exact')},
+           : (doublons ? pluriel(doublons, 'doublon exact', 'doublons exacts') : 'aucun doublon exact')},
     {nom: 'Table attributaire',
-     etat: (!noms.length || champsVides) ? 'alerte' : 'ok',
-     detail: noms.length ? `${noms.length} champ(s), ${champsVides} entièrement vide(s)` : 'absente'},
+     etat: dbfManquant ? 'pb' : ((!noms.length || champsVides) ? 'alerte' : 'ok'),
+     statut: dbfManquant ? 'Absente' : undefined,
+     detail: noms.length ? pluriel(noms.length, 'champ') + ', ' + champsVides + (champsVides === 1 ? ' entièrement vide' : ' entièrement vides') : 'absente'},
   ];
+  finaliserRegles(r);
   r.verdict = r.anomalies.length ? 'rouge' : (r.avertissements.length ? 'orange' : 'vert');
   r.completude = r.nb === 0 ? 'inexploitable'
     : (meta.manquants || []).length ? 'incomplet' : (meta.completudeConnue ? 'complet' : null);
@@ -481,50 +670,108 @@ function analyser(fc, meta = {}) {
 }
 
 // --- gestion des couches ---
+function estVide(v) {
+  return v === null || v === undefined ||
+    (typeof v === 'string' && v.trim() === '') ||
+    (typeof v === 'number' && !Number.isFinite(v)) ||
+    (v instanceof Date && !Number.isFinite(v.getTime()));
+}
+function typeAttribut(v) {
+  if (v instanceof Date) return 'date';
+  if (typeof v === 'number') return 'number';
+  if (typeof v === 'boolean') return 'boolean';
+  return 'string';
+}
+function fmtVal(v) {  // Date -> AAAA-MM-JJ (local, pas d'UTC pour éviter le décalage de jour)
+  if (estVide(v)) return 'NULL';
+  if (v instanceof Date) {
+    const p = x => String(x).padStart(2, '0');
+    return v.getFullYear() + '-' + p(v.getMonth() + 1) + '-' + p(v.getDate());
+  }
+  return v;
+}
 function echap(v) {
   return String(v ?? '').replace(/[&<>"']/g, c =>
     ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function chargement(msg) {
   const c = $('#chargement');
-  if (!msg) { c.style.display = 'none'; return; }
+  if (!msg) { c.style.display = 'none'; c.setAttribute('aria-hidden', 'true'); return; }
   c.querySelector('.msg').textContent = msg;
+  c.setAttribute('aria-hidden', 'false');
   c.style.display = 'flex';
 }
-const souffle = () => new Promise(r => setTimeout(r, 15));  // rend la main au navigateur
 let _toastTimer = null;
-function toast(msg) {
+function toast(msg, duree = 5500) {
   const t = $('#toast');
-  t.textContent = msg; t.style.display = 'block';
+  t.textContent = msg; t.style.display = 'block'; t.style.cursor = 'pointer';
+  t.title = 'Cliquer pour fermer';
+  t.onclick = () => { t.style.display = 'none'; clearTimeout(_toastTimer); };
   clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => t.style.display = 'none', 5500);
+  _toastTimer = setTimeout(() => t.style.display = 'none', duree);
 }
 function popupAttributs(props) {
   if (!props || !Object.keys(props).length) return 'Aucun attribut';
-  return '<table>' + Object.entries(props).slice(0, 25)
-    .map(([k,v]) => `<tr><td>${echap(k)}</td><td>${echap(v)}</td></tr>`).join('') + '</table>';
+  const entrees = Object.entries(props);
+  const limite = 25;
+  return '<table>' + entrees.slice(0, limite)
+    .map(([k,v]) => `<tr><td>${echap(k)}</td><td>${echap(fmtVal(v))}</td></tr>`).join('') +
+    (entrees.length > limite ? `<tr><td colspan="2">${limite} premiers champs affichés sur ${entrees.length}</td></tr>` : '') + '</table>';
 }
-function ajouterCouche(fc, nom, meta = {}) {
+const LAMBERT93 = '+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs';
+function empriseSembleLambert93(emprise) {
+  return !!emprise && emprise[0] >= -200000 && emprise[2] <= 1500000 &&
+    emprise[1] >= 5500000 && emprise[3] <= 7500000;
+}
+async function apercuLambert93(fc) {
+  const proj = await libProj();
+  const tr = proj(LAMBERT93, 'WGS84');
+  return {...fc, features: (fc.features || []).map(f => ({
+    ...f,
+    geometry: f.geometry ? transformerCoords(f.geometry, c => tr.forward(c)) : null
+  }))};
+}
+async function ajouterCouche(fc, nom, meta = {}) {
+  if (nombreElements() >= MAX_COUCHES) {
+    toast(`Limite de ${MAX_COUCHES} fichiers ou couches atteinte — « ${nom} » n'a pas été ajouté. Retirez un élément, puis réessayez.`, 10000);
+    return false;
+  }
   const nb = (fc.features || []).length;
   if (nb > MAX_ENTITES) {
-    erreur(`« ${nom} » contient ${nb.toLocaleString('fr-FR')} entités — au-delà de la capacité d'un contrôle dans le navigateur (${MAX_ENTITES.toLocaleString('fr-FR')} max). Pour ce volume, utilisez un SIG de bureau comme QGIS.`);
+    erreurFichier(nom, `Fichier contenant ${nb.toLocaleString('fr-FR')} entités — au-delà de la capacité d'un contrôle dans le navigateur (${MAX_ENTITES.toLocaleString('fr-FR')} max). Pour ce volume, utilisez un SIG de bureau comme QGIS.`, meta.sourceKey);
     return false;
   }
-  if (couches.length >= MAX_COUCHES) {
-    toast(`Limite de ${MAX_COUCHES} couches superposées atteinte — retirez une couche pour en ajouter une autre.`);
-    return false;
+  if (nb > 3000) { chargement(`Analyse de \u00ab ${nom} \u00bb (${nb.toLocaleString('fr-FR')} entit\u00e9s)\u2026`); await souffle(); }
+  const rapport = await analyser(fc, meta);
+  let fcCarte = fc;
+  let apercuSuppose = false;
+  if (rapport.horsMonde && !meta.reprojetee && empriseSembleLambert93(rapport.emprise)) {
+    try {
+      fcCarte = await apercuLambert93(fc);
+      apercuSuppose = true;
+      rapport.avertissements.unshift('Aperçu cartographique indicatif affiché en supposant le Lambert 93 ; le SCR reste à confirmer avant tout usage.');
+      const controleCrs = (rapport.controles || []).find(c => c.nom === 'Système de coordonnées');
+      if (controleCrs) controleCrs.detail += ' ; aperçu indicatif en Lambert 93 supposé';
+    } catch (e) {
+      console.warn('GeoVerif — aperçu Lambert 93 indisponible', e);
+    }
   }
+  const horsCarte = !!rapport.horsMonde && !apercuSuppose;
   const couleur = PALETTE[couches.length % PALETTE.length];
-  const style = {color: couleur, weight: 2, fillColor: couleur, fillOpacity: .3};
-  const lay = L.geoJSON(fc, {
+  const style = {color: couleur, weight: 2, fillColor: couleur, fillOpacity: .3,
+                 dashArray: apercuSuppose ? '6 5' : null};
+  const lay = L.geoJSON(fcCarte, {
     style,
     pointToLayer: (f, latlng) => L.circleMarker(latlng, {...style, radius: 6, fillOpacity: .7}),
     onEachFeature: (f, l) => l.bindPopup(popupAttributs(f.properties))
-  }).addTo(carte);
-  const rapport = analyser(fc, meta);
-  couches.push({nom, lay, couleur, rapport, fc, visible: true});
-  const b = lay.getBounds();
-  if (b.isValid()) carte.fitBounds(b, {padding: [30, 30]});
+  });
+  if (!horsCarte) lay.addTo(carte);
+  couches.push({nom, lay, couleur, rapport, fc, visible: !horsCarte, horsCarte,
+                apercuSuppose, sourceKey: meta.sourceKey || null});
+  if (!horsCarte) {
+    const b = lay.getBounds();
+    if (b.isValid()) carte.fitBounds(b, {padding: [30, 30]});
+  }
   $('#accueil').style.display = 'none';
   rendreListeCouches();
   majBoutonRapport();
@@ -538,8 +785,9 @@ const VERDICTS = {
 };
 function majBoutonRapport() {
   const btn = $('#btnrapport'), bd = $('#bandeau');
-  if (!couches.length) { btn.style.display = 'none'; bd.style.display = 'none'; return; }
-  const c = couches[couches.length - 1];
+  if (!couches.length) { btn.style.display = 'none'; bd.style.display = 'none'; idxCourant = -1; return; }
+  const idx = (idxCourant >= 0 && idxCourant < couches.length) ? idxCourant : couches.length - 1;
+  const c = couches[idx];
   const v = VERDICTS[c.rapport.verdict];
   btn.style.display = 'inline-block';
   btn.textContent = v.txt;
@@ -547,79 +795,97 @@ function majBoutonRapport() {
   const compl = {complet: 'livrable complet', incomplet: 'livrable incomplet',
                  inexploitable: 'livrable inexploitable'}[c.rapport.completude];
   bd.className = 'b-' + c.rapport.verdict;
-  bd.style.display = 'flex';
   bd.innerHTML = `<span>${v.txt}</span>
-    <span class="detail">${echap(c.nom)} — ${c.rapport.nb} entité(s)${compl ? ' · ' + compl : ''}</span>
+    <span class="detail">${echap(c.nom)} — ${pluriel(c.rapport.nb, 'entité')}${compl ? ' · ' + compl : ''}</span>
     <button type="button">Rapport complet</button>`;
-  const idx = couches.length - 1;
   bd.querySelector('button').onclick = () => rapportComplet(idx);
+  // bandeau et panneau mutuellement exclusifs : le bandeau prend le relais quand le panneau se ferme
+  bd.style.display = ($('#panneau').style.display === 'block') ? 'none' : 'flex';
+}
+function fermerPanneau() {
+  $('#panneau').style.display = 'none';
+  panneauRefus = -1;
+  majBoutonRapport();
 }
 function htmlRapport(r, nom, complet = false) {
   const V = {vert: ['\u2713 EXPLOITABLE', '#1d5c1d', '#e6f2e6'],
              orange: ['\u26a0 UTILISABLE AVEC R\u00c9SERVES', '#9a6a00', '#fdf3d7'],
              rouge: ['\u2717 PROBL\u00c8ME BLOQUANT', '#b3261e', '#fbe9e7']}[r.verdict || 'vert'];
-  const badge = `<div style="margin:8px 0 4px;padding:9px 14px;border-radius:10px;font-weight:700;
+  const badge = `<div style="margin:8px 0 4px;padding:9px 14px;border-radius:6px;font-weight:700;
     color:${V[1]};background:${V[2]};border:1px solid ${V[1]}">${V[0]}</div>`;
   const compl = {complet: 'Livrable complet', incomplet: 'Livrable incomplet',
                  inexploitable: 'Livrable inexploitable'}[r.completude];
   const li = (arr, cls) => arr.map(a => `<li class="${cls}">${echap(a)}</li>`).join('');
   const emp = r.emprise ? r.emprise.map(v => v.toFixed(4)).join(', ') : '\u2014';
-  const colonnes = r.champs.map(c => `<tr><td>${echap(c.nom)}</td><td>${c.type}</td><td>${c.taux}%</td></tr>`).join('');
-  const entetes = r.champs.slice(0,6).map(c => `<th>${echap(c.nom)}</th>`).join('');
+  const colonnes = r.champs.map(c => `<tr><td>${echap(c.nom)}</td><td>${echap(c.type)}</td><td>${c.taux}%</td></tr>`).join('');
+  const entetes = r.champs.map(c => `<th>${echap(c.nom)}</th>`).join('');
   const lignes = r.apercu.map(p =>
-    `<tr>${r.champs.slice(0,6).map(c => `<td>${echap(p[c.nom])}</td>`).join('')}</tr>`).join('');
+    `<tr>${r.champs.map(c => `<td>${echap(fmtVal(p[c.nom]))}</td>`).join('')}</tr>`).join('');
+  const nbApercu = Math.min(5, r.apercu.length);
+  const maxColonnesApercuImpression = 6;
+  const lignesImpression = r.apercu.map((p, pi) =>
+    `<tr><td>${pi + 1}</td>${r.champs.map(c => `<td>${echap(fmtVal(p[c.nom]))}</td>`).join('')}</tr>`).join('');
+  const apercuImpression = r.champs.length > maxColonnesApercuImpression
+    ? `<p class="hintattr apercu-indisponible">Aperçu non affiché : nombre de colonnes trop important (${r.champs.length}).</p>`
+    : `<table><thead><tr><th>entité</th>${entetes}</tr></thead><tbody>${lignesImpression}</tbody></table>`;
   const champsHtml = r.champs.length ? `
     <h4>Champs (${r.champs.length})</h4>
-    <table><thead><tr><th>nom</th><th>type</th><th>rempli</th></tr></thead><tbody>${colonnes}</tbody></table>` : '';
+    <div class="table-scroll"><table><thead><tr><th>nom</th><th>type</th><th>rempli</th></tr></thead><tbody>${colonnes}</tbody></table></div>` : '';
   const apercuHtml = (r.apercu.length && r.champs.length) ? `
-    <h4>Aper\u00e7u (5 premi\u00e8res entit\u00e9s)</h4>
-    <table><thead><tr>${entetes}</tr></thead><tbody>${lignes}</tbody></table>` : '';
+    <h4>Aper\u00e7u (${pluriel(nbApercu, 'première entité', 'premières entités')})</h4>
+    <div class="apercu-ecran"><p class="hintattr">Les ${r.champs.length} ${r.champs.length === 1 ? 'colonne est affichée' : 'colonnes sont affichées'} ; faites défiler le tableau horizontalement si nécessaire.</p>
+    <div class="table-scroll"><table><thead><tr>${entetes}</tr></thead><tbody>${lignes}</tbody></table></div></div>
+    <div class="apercu-impression">${apercuImpression}</div>` : '';
   const base = `<h3>${echap(nom)}</h3>${badge}
     ${r.anomalies.length ? `<h4>Probl\u00e8mes</h4><ul>${li(r.anomalies,'pb')}</ul>` : ''}
     ${r.avertissements.length ? `<h4>Avertissements</h4><ul>${li(r.avertissements,'alerte')}</ul>` : ''}
     <h4>R\u00e9sum\u00e9</h4>
     <ul>
       ${compl ? `<li><strong>${compl}</strong></li>` : ''}
-      <li>${r.nb} entit\u00e9(s) \u2014 ${Object.entries(r.types).map(([t,n])=>`${n} ${t}`).join(', ') || 'aucune g\u00e9om\u00e9trie'}</li>
+      <li>${pluriel(r.nb, 'entit\u00e9')} \u2014 ${Object.entries(r.types).map(([t,n])=>`${n.toLocaleString('fr-FR')}\u00a0${echap(typeFr(t, n))}`).join(', ') || 'aucune g\u00e9om\u00e9trie'}</li>
       <li>SCR : ${echap(r.crs || 'non fourni')}</li>
-      <li>Emprise (WGS84) : ${emp}</li>
+      <li>Emprise ${r.horsMonde ? '(unités du fichier \u2014 SCR non résolu)' : '(WGS84)'} : ${emp}</li>
     </ul>`;
   if (!complet) return base + champsHtml + apercuHtml;
 
   const controles = (r.controles || []).map(c =>
     `<tr><td>${c.nom}</td><td class="${{ok:'ok',alerte:'alerte',pb:'pb',na:''}[c.etat]}">` +
-    `${{ok:'OK',alerte:'\u00c0 v\u00e9rifier',pb:'Probl\u00e8me',na:'\u2014'}[c.etat]}</td><td>${echap(c.detail)}</td></tr>`).join('');
+    `${echap(c.statut || {ok:'OK',alerte:'\u00c0 v\u00e9rifier',pb:'Probl\u00e8me',na:'\u2014'}[c.etat])}</td><td>${echap(c.detail)}</td></tr>`).join('');
   const attribs = (r.attributs || []).map((a, ai) => {
     const obs = a.variantes.length
-      ? `<span class="chip var">\u26a0 ${a.variantes.length} groupe(s) de variantes</span> ${a.variantes.slice(0,2).map(g => echap(g.join(' / '))).join(' \u00b7 ')}`
+      ? `<span class="chip var">\u26a0 ${pluriel(a.variantes.length, 'groupe')} de variantes</span> ${a.variantes.slice(0,2).map(g => echap(g.join(' / '))).join(' \u00b7 ')}`
       : `<span style="color:#999">\u2014</span>`;
     return `<tr class="ligneattr" data-ai="${ai}"><td>${echap(a.nom)}</td><td>${a.distinct.toLocaleString('fr-FR')}</td><td>${obs}</td></tr>`;
   }).join('');
   return base + `
     <h4>V\u00e9rifications effectu\u00e9es</h4>
-    <table><thead><tr><th>contr\u00f4le</th><th>\u00e9tat</th><th>d\u00e9tail</th></tr></thead><tbody>${controles}</tbody></table>
+    <div class="table-scroll"><table><thead><tr><th>contr\u00f4le</th><th>\u00e9tat</th><th>d\u00e9tails</th></tr></thead><tbody>${controles}</tbody></table></div>
     <h4>Contr\u00f4le attributaire${r.attributsPartiels ? ' (sur les 50\u202f000 premi\u00e8res entit\u00e9s)' : ''}</h4>
-    <table id="tabattr"><thead><tr><th>champ</th><th>valeurs distinctes</th><th>observations</th></tr></thead><tbody>${attribs}</tbody></table>`
+    ${r.attributsLimites ? `<p class="hintattr">Profil limité aux 40 premiers champs sur ${r.champs.length}. La liste des champs et l'aperçu ci-dessous restent complets.</p>` : ''}
+    <div class="table-scroll"><table id="tabattr"><thead><tr><th>champ</th><th>valeurs distinctes</th><th>observations</th></tr></thead><tbody>${attribs}</tbody></table></div>`
     + champsHtml + apercuHtml;
 }
 function rendreRapport(i) {
   const c = couches[i];
+  idxCourant = i;
+  panneauRefus = -1;
   $('#panneau').innerHTML =
-    `<button class="fermer" onclick="document.getElementById('panneau').style.display='none'">\u2715</button>`
+    `<button class="fermer" onclick="fermerPanneau()" aria-label="Fermer le rapport">\u2715</button>`
     + htmlRapport(c.rapport, c.nom)
     + `<div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
         <button onclick="rapportComplet(${i})">Rapport complet</button>
         <button onclick="imprimerRapport(${i})">\ud83d\udda8 Imprimer / PDF</button>
       </div>
-      <p style="color:#999;font-size:11px;margin-top:14px">G\u00e9oVerif \u2014 vos donn\u00e9es restent sur votre ordinateur.</p>`;
+      <p style="color:#999;font-size:11px;margin-top:14px">Contrôle du fichier exécuté localement. Les fonds de carte peuvent utiliser des services tiers.</p>`;
   $('#panneau').style.display = 'block';
   $('#panneau').scrollTop = 0;
+  majBoutonRapport();
 }
 function rapportComplet(i) {
   const c = couches[i];
   if (!c) return;
   $('#rccontenu').innerHTML =
-    `<button class="fermer" onclick="document.getElementById('rapportcomplet').style.display='none'">\u2715</button>`
+    `<button class="fermer" onclick="fermerModale('rapportcomplet')" aria-label="Fermer le rapport complet">\u2715</button>`
     + htmlRapport(c.rapport, c.nom, true)
     + `<div style="margin-top:16px"><button onclick="imprimerRapport(${i})">\ud83d\udda8 Imprimer / PDF</button></div>`;
   const tab = $('#rccontenu #tabattr');
@@ -630,7 +896,7 @@ function rapportComplet(i) {
       tr.onclick = () => voirValeurs(i, +tr.dataset.ai));
   }
   const rc = $('#rapportcomplet');
-  rc.style.display = 'flex';
+  ouvrirModale('rapportcomplet');
   rc.querySelector('.boite').scrollTop = 0;
 }
 function voirValeurs(i, ai) {
@@ -639,37 +905,60 @@ function voirValeurs(i, ai) {
   if (!a) return;
   const vari = a.variantes.length
     ? `<p><span class="chip var">\u26a0 variantes de casse/espaces</span> ${a.variantes.slice(0,6).map(g => echap(g.join(' / '))).join(' \u00b7 ')}</p>` : '';
-  const lignes = a.valeurs.map(([v, n]) =>
-    `<tr><td>${echap(v)}</td><td style="text-align:right;color:#888">${n.toLocaleString('fr-FR')}</td></tr>`).join('');
+  const lignes = a.valeurs.length ? a.valeurs.map(([v, n]) =>
+    `<tr><td>${echap(v)}</td><td style="text-align:right;color:#888">${n.toLocaleString('fr-FR')}</td></tr>`).join('')
+    : '<tr><td colspan="2">Aucune valeur renseignée (les valeurs NULL ne sont pas comptées).</td></tr>';
   $('#rccontenu').innerHTML =
-    `<button class="fermer" onclick="document.getElementById('rapportcomplet').style.display='none'">\u2715</button>
+    `<button class="fermer" onclick="fermerModale('rapportcomplet')" aria-label="Fermer le rapport complet">\u2715</button>
     <h3>Champ \u00ab ${echap(a.nom)} \u00bb</h3>
-    <p style="color:#666;font-size:13px">${a.distinct.toLocaleString('fr-FR')} valeur(s) distincte(s) \u2014 ${echap(c.nom)}</p>
+    <p style="color:#666;font-size:13px">${pluriel(a.distinct, 'valeur distincte', 'valeurs distinctes')} \u2014 ${echap(c.nom)}</p>
     ${vari}
-    <table><tr><th>valeur</th><th style="text-align:right">occurrences</th></tr>${lignes}</table>
+    <div class="table-scroll"><table><tr><th>valeur</th><th style="text-align:right">occurrences</th></tr>${lignes}</table></div>
     ${a.tronque ? `<p class="hintattr">Liste limit\u00e9e aux 200 valeurs les plus fr\u00e9quentes (${a.distinct.toLocaleString('fr-FR')} au total).</p>` : ''}
     <div style="margin-top:14px"><button onclick="rapportComplet(${i})">\u2190 Retour au rapport</button></div>`;
   $('#rapportcomplet').querySelector('.boite').scrollTop = 0;
 }
+const iconeOeil = v => v
+  ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`
+  : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.7 5.1A10 10 0 0 1 12 5c6.5 0 10 7 10 7a17.4 17.4 0 0 1-2.9 3.9M6.6 6.6A16.8 16.8 0 0 0 2 12s3.5 7 10 7a9.9 9.9 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m3 3 18 18"/></svg>`;
+function zoomerCouche(i) {
+  const c = couches[i];
+  if (!c) return;
+  if (!c.horsCarte) {
+    const b = c.lay.getBounds();
+    if (b.isValid()) carte.fitBounds(b, {padding: [30, 30]});
+  }
+  rendreRapport(i);
+}
 function rendreListeCouches() {
   const d = $('#couches');
-  if (!couches.length) { d.style.display = 'none'; $('#info').textContent = 'Vos fichiers ne quittent jamais votre ordinateur.'; return; }
+  if (!couches.length && !refuses.length) { d.style.display = 'none'; $('#info').textContent = ''; return; }
   d.style.display = 'block';
-  d.innerHTML = `<h4>Couches (${couches.length}/${MAX_COUCHES})</h4>` + couches.map((c, i) => `
+  d.innerHTML = `<h4>Fichiers / couches (${nombreElements()}/${MAX_COUCHES})</h4>` + couches.map((c, i) => `
     <div class="couche${c.visible ? '' : ' off'}">
-      <input type="color" value="${c.couleur}" title="Changer la couleur" oninput="changerCouleur(${i}, this.value)">
-      <span class="nomc" title="${echap(c.nom)}">${echap(c.nom)}</span>
-      <button title="Rapport de santé" onclick="voirRapport(${i})">${c.rapport.anomalies.length ? '⚠' : 'ⓘ'}</button>
-      <button title="Afficher/masquer" onclick="basculer(${i})">👁</button>
-      <button title="Retirer" onclick="retirer(${i})">✕</button>
+      <input type="color" value="${c.couleur}" title="Changer la couleur" aria-label="Couleur de la couche" oninput="changerCouleur(${i}, this.value)">
+      <span class="nomc" role="button" tabindex="0" title="Zoomer sur l'emprise et ouvrir le rapport" onclick="zoomerCouche(${i})" onkeydown="if(event.key==='Enter')zoomerCouche(${i})">${echap(c.nom)}</span>
+      <button title="${c.rapport.anomalies.length ? 'Problèmes détectés — voir le rapport' : 'Voir le rapport'}" aria-label="Voir le rapport" onclick="voirRapport(${i})">${c.rapport.anomalies.length ? '⚠' : 'ⓘ'}</button>
+      <button title="${c.visible ? 'Masquer la couche' : 'Afficher la couche'}" aria-label="${c.visible ? 'Masquer la couche' : 'Afficher la couche'}" onclick="basculer(${i})">${iconeOeil(c.visible)}</button>
+      <button title="Retirer" aria-label="Retirer la couche" onclick="retirer(${i})">✕</button>
+    </div>`).join('') + refuses.map((r, k) => `
+    <div class="couche refus">
+      <span class="pastille" style="background:#b3261e"></span>
+      <span class="nomc" role="button" tabindex="0" title="Fichier refusé — voir pourquoi" onclick="rendreRapportRefus(${k})" onkeydown="if(event.key==='Enter')rendreRapportRefus(${k})">${echap(r.nom)}</span>
+      <button title="Voir le problème bloquant" aria-label="Voir le problème bloquant" onclick="rendreRapportRefus(${k})" style="color:#b3261e">\u2717</button>
+      <button title="Retirer de la liste" aria-label="Retirer de la liste" onclick="retirerRefus(${k})">\u2715</button>
     </div>`).join('');
-  $('#info').textContent = couches.reduce((n, c) => n + c.rapport.nb, 0) + ' entité(s) chargée(s).';
+  const totalEnt = couches.reduce((n, c) => n + c.rapport.nb, 0);
+  $('#info').textContent = couches.length ? pluriel(totalEnt, 'entité chargée', 'entités chargées') + '.' : '';
 }
 function changerCouleur(i, c) {
   couches[i].couleur = c;
   couches[i].lay.setStyle({color: c, fillColor: c});
 }
-function voirRapport(i) { rendreRapport(i); }
+function voirRapport(i) {
+  if ($('#panneau').style.display === 'block' && idxCourant === i) return fermerPanneau();
+  zoomerCouche(i);
+}
 function basculer(i) {
   const c = couches[i];
   c.visible = !c.visible;
@@ -679,11 +968,21 @@ function basculer(i) {
 function retirer(i) {
   carte.removeLayer(couches[i].lay);
   couches.splice(i, 1);
+  if (idxCourant === i) idxCourant = couches.length - 1;
+  else if (idxCourant > i) idxCourant--;
+  if ($('#panneau').style.display === 'block') {
+    if (idxCourant >= 0) rendreRapport(idxCourant);
+    else if (refuses.length) rendreRapportRefus(refuses.length - 1);
+    else $('#panneau').style.display = 'none';
+  }
   rendreListeCouches();
   majBoutonRapport();
-  if (!couches.length) $('#accueil').style.display = 'flex';
+  $('#accueil').style.display = (!couches.length && !refuses.length) ? 'flex' : 'none';
 }
 function accueil() {
+  idxCourant = -1;
+  refuses.length = 0;
+  panneauRefus = -1;
   while (couches.length) { carte.removeLayer(couches[0].lay); couches.shift(); }
   $('#panneau').style.display = 'none';
   $('#rapportcomplet').style.display = 'none';
@@ -696,92 +995,249 @@ function accueil() {
 
 // --- lecture des fichiers ---
 function erreur(msg) {
-  if (couches.length) { toast(msg); return; }
+  if (couches.length) { toast(msg, 12000); return; }
   const e = $('#erreur'); e.textContent = msg; e.style.display = 'block';
   $('#accueil').style.display = 'flex';
+}
+// --- fichiers refusés : ils restent visibles, avec leur verdict bloquant, tant qu'on ne les retire pas ---
+function erreurFichier(nomF, message, sourceKey = null) {
+  if (nombreElements() >= MAX_COUCHES) {
+    toast(`Limite de ${MAX_COUCHES} fichiers ou couches atteinte — « ${nomF} » n'a pas été ajouté. Retirez un élément, puis réessayez.`, 10000);
+    return false;
+  }
+  refuses.push({nom: nomF, message, sourceKey});
+  $('#accueil').style.display = 'none';
+  rendreListeCouches();
+  rendreRapportRefus(refuses.length - 1);
+  return true;
+}
+function rendreRapportRefus(k) {
+  const r = refuses[k];
+  if (!r) return;
+  panneauRefus = k; idxCourant = -1;
+  const contenuDiagnostic = diagnosticRefus(r);
+  const hrefDiagnostic = 'data:text/plain;charset=utf-8,' + encodeURIComponent(contenuDiagnostic);
+  const baseDiagnostic = r.nom.replace(/[^a-z0-9._-]+/gi, '_').replace(/^_+|_+$/g, '') || 'fichier';
+  $('#panneau').innerHTML =
+    `<button class="fermer" onclick="fermerPanneau()" aria-label="Fermer le diagnostic">\u2715</button>` +
+    `<h3>${echap(r.nom)}</h3>` +
+    `<div style="margin:10px 0;padding:8px 12px;border:1.5px solid #b3261e;border-radius:6px;color:#b3261e;font-weight:700">\u2717 PROBL\u00c8ME BLOQUANT</div>` +
+    `<h4>Probl\u00e8me</h4><ul><li class="pb">${echap(r.message)}</li></ul>` +
+    `<p style="color:var(--texte-3);font-size:12px;margin-top:12px">Fichier refus\u00e9 \u2014 aucune donn\u00e9e n'a pu \u00eatre charg\u00e9e.</p>` +
+    `<a class="btn-export" href="${hrefDiagnostic}" download="diagnostic-geoverif-${echap(baseDiagnostic)}.txt">Exporter le diagnostic (.txt)</a>`;
+  $('#panneau').style.display = 'block';
+  $('#panneau').scrollTop = 0;
+  majBoutonRapport();
+}
+function diagnosticRefus(r) {
+  return [
+    'GEOVERIF v1.0 — DIAGNOSTIC D’OUVERTURE',
+    'Fichier : ' + r.nom,
+    'Verdict : PROBLÈME BLOQUANT',
+    'Cause : ' + r.message,
+    'Action : corriger le fichier puis le contrôler à nouveau.',
+    'Généré le : ' + new Date().toLocaleString('fr-FR'),
+    'Contrôle du fichier exécuté localement.'
+  ].join('\r\n');
+}
+function retirerRefus(k) {
+  const etaitOuvert = panneauRefus === k && $('#panneau').style.display === 'block';
+  refuses.splice(k, 1);
+  if (etaitOuvert && refuses.length) rendreRapportRefus(Math.min(k, refuses.length - 1));
+  else if (etaitOuvert && couches.length) rendreRapport(couches.length - 1);
+  else if (panneauRefus === k) fermerPanneau();
+  else if (panneauRefus > k) panneauRefus--;
+  rendreListeCouches();
+  $('#accueil').style.display = (!couches.length && !refuses.length) ? 'flex' : 'none';
+}
+
+const EXT_SIDECAR_SHP = /\.(shp|dbf|prj|shx|cpg|sbn|sbx|qix|fix|shp\.xml)$/i;
+const baseShapefile = nom => String(nom).toLowerCase().replace(/\.(shp\.xml|shp|dbf|prj|shx|cpg|sbn|sbx|qix|fix)$/i, '');
+
+async function traiterFichier(nomF, sourceKey, action) {
+  try { await action(); }
+  catch (ex) {
+    const detail = ex && ex.message ? ex.message : String(ex);
+    erreurFichier(nomF, 'Impossible de lire le fichier (' + detail + ').', sourceKey);
+    console.error('GeoVerif — échec de lecture de ' + nomF, ex);
+  }
 }
 
 async function lireFichiers(files) {
   $('#erreur').style.display = 'none';
-  const liste = [...files];
-  const lourd = liste.find(f => f.size > TAILLE_REFUS);
-  if (lourd) {
-    erreur(`« ${lourd.name} » pèse ${Math.round(lourd.size / 1048576)} Mo — trop lourd pour un traitement dans le navigateur (${Math.round(TAILLE_REFUS / 1048576)} Mo max). Pour ce volume, utilisez un SIG de bureau comme QGIS.`);
-    return;
+  const tous = [...files];
+  const primaires = tous.filter(f => /\.shp$/i.test(f.name) || !EXT_SIDECAR_SHP.test(f.name));
+  const acceptes = new Map();
+  const vusSelection = new Set();
+  const doublons = [];
+  const horsLimite = [];
+  let placesReservees = nombreElements();
+  for (const f of primaires) {
+    const cle = cleFichier(f);
+    if (sourceDejaPresente(cle) || vusSelection.has(cle)) { doublons.push(f.name); continue; }
+    if (placesReservees >= MAX_COUCHES) { horsLimite.push(f.name); continue; }
+    vusSelection.add(cle);
+    acceptes.set(f, cle);
+    placesReservees++;
   }
+
+  const shpsParBase = new Map([...acceptes.entries()]
+    .filter(([f]) => /\.shp$/i.test(f.name)).map(([f, cle]) => [baseShapefile(f.name), cle]));
+  const sourceParFichier = new Map(acceptes);
+  for (const f of tous) {
+    if (sourceParFichier.has(f) || !EXT_SIDECAR_SHP.test(f.name) || /\.shp$/i.test(f.name)) continue;
+    const cle = shpsParBase.get(baseShapefile(f.name));
+    if (cle) sourceParFichier.set(f, cle);
+  }
+
+  const alertes = [];
+  if (doublons.length) alertes.push(`${pluriel(doublons.length, 'fichier déjà présent', 'fichiers déjà présents')} ignoré${doublons.length === 1 ? '' : 's'} : ${doublons.join(', ')}.`);
+  if (horsLimite.length) alertes.push(`Limite stricte de ${MAX_COUCHES} fichiers ou couches atteinte — non ajouté${horsLimite.length === 1 ? '' : 's'} : ${horsLimite.join(', ')}.`);
+  if (alertes.length) toast(alertes.join(' '), 12000);
+  if (!sourceParFichier.size) { chargement(null); return; }
+
+  const sourcesLourdes = new Set();
+  for (const f of tous.filter(f => sourceParFichier.has(f) && f.size > TAILLE_REFUS)) {
+    const cle = sourceParFichier.get(f);
+    if (sourcesLourdes.has(cle)) continue;
+    sourcesLourdes.add(cle);
+    const primaire = [...acceptes.entries()].find(([, k]) => k === cle)?.[0] || f;
+    erreurFichier(primaire.name, `Fichier de ${Math.round(f.size / 1048576)} Mo — trop lourd pour un traitement dans le navigateur (${Math.round(TAILLE_REFUS / 1048576)} Mo max). Pour ce volume, utilisez un SIG de bureau comme QGIS.`, cle);
+  }
+  const liste = tous.filter(f => sourceParFichier.has(f) && !sourcesLourdes.has(sourceParFichier.get(f)) && f.size <= TAILLE_REFUS);
+  if (!liste.length) { chargement(null); return; }
   if (liste.some(f => f.size > TAILLE_AVERTIR))
     chargement('Fichier volumineux — le traitement peut prendre un moment…');
-  const shpF = liste.find(f => /\.shp$/i.test(f.name));
+  const shps = liste.filter(f => /\.shp$/i.test(f.name));
   try {
-    if (shpF) {
-      const dbfF = liste.find(f => /\.dbf$/i.test(f.name));
-      const prjF = liste.find(f => /\.prj$/i.test(f.name));
-      const shxF = liste.find(f => /\.shx$/i.test(f.name));
+    for (const shpF of shps) await traiterFichier(shpF.name, sourceParFichier.get(shpF), async () => {
+      const base = shpF.name.replace(/\.shp$/i, '').toLowerCase();
+      const frere = ext => liste.find(f => f.name.toLowerCase() === base + ext);
+      const dbfF = frere('.dbf');
+      const prjF = frere('.prj');
+      const shxF = frere('.shx');
       const manquants = [];
-      if (!dbfF) manquants.push({fichier: '.dbf', bloquant: false,
+      if (!dbfF) manquants.push({fichier: '.dbf', bloquant: true,
         message: 'Fichier .dbf absent du livrable — la table attributaire est indisponible (géométries sans données).'});
-      if (!prjF) manquants.push({fichier: '.prj', bloquant: false,
+      if (!prjF) manquants.push({fichier: '.prj', bloquant: true,
         message: 'Fichier .prj absent du livrable — système de coordonnées inconnu : positionnement potentiellement faux.'});
-      if (!shxF) manquants.push({fichier: '.shx', bloquant: false,
+      if (!shxF) manquants.push({fichier: '.shx', bloquant: true,
         message: "Fichier .shx absent du livrable — certains logiciels SIG refuseront d'ouvrir cette couche."});
       const prj = prjF ? await prjF.text() : undefined;
       const geom = shp.parseShp(await shpF.arrayBuffer(), prj);
-      const attrs = dbfF ? shp.parseDbf(await dbfF.arrayBuffer()) : geom.map(() => ({}));
-      ajouterCouche(shp.combine([geom, attrs]), shpF.name,
-        {prj, reprojetee: !!prjF, manquants, completudeConnue: true});
-      return;
-    }
-    for (const f of liste) await lireFichier(f);
-  } catch (ex) { erreur('Impossible de lire : ' + ex.message); console.error(ex); }
-  finally { chargement(null); }
+      const dbfBuf = dbfF ? await dbfF.arrayBuffer() : null;
+      const attrs = dbfBuf ? shp.parseDbf(dbfBuf) : geom.map(() => ({}));
+      await ajouterCouche(shp.combine([geom, attrs]), shpF.name,
+        {prj, reprojetee: !!prjF, manquants, completudeConnue: true,
+         typesChamps: dbfBuf ? typesChampsDbf(dbfBuf) : {}, sourceKey: sourceParFichier.get(shpF)});
+    });
+    for (const f of liste)
+      if (!EXT_SIDECAR_SHP.test(f.name)) await traiterFichier(f.name, sourceParFichier.get(f), () => lireFichier(f, sourceParFichier.get(f)));
+  } finally { chargement(null); }
 }
 
-async function lireFichier(f) {
+async function lireFichier(f, sourceKey = null) {
   const n = f.name;
   if (/\.zip$/i.test(n)) {
-    const gj = await shp(await f.arrayBuffer());
-    for (const fc of Array.isArray(gj) ? gj : [gj])
-      ajouterCouche(fc, fc.fileName || n, {reprojetee: true, completudeConnue: true});
+    const JSZ = await libZip();
+    const buf = await f.arrayBuffer();
+    let archive;
+    try { archive = await JSZ.loadAsync(buf); }
+    catch { return erreurFichier(n, 'Archive ZIP invalide — fichier corrompu ou tronqué.', sourceKey); }
+    const problemeZip = problemeArchive(archive);
+    if (problemeZip) return erreurFichier(n, problemeZip, sourceKey);
+    const gj = await shp(buf);
+    for (const fc of Array.isArray(gj) ? gj : [gj]) {
+      const base = String(fc.fileName || '').toLowerCase();
+      const nomEntree = ext => Object.keys(archive.files).find(k => {
+        const min = k.toLowerCase();
+        return min === base + ext || min.endsWith('/' + base + ext);
+      });
+      const present = ext => !!nomEntree(ext);
+      const manquants = [];
+      if (!present('.dbf')) manquants.push({fichier: '.dbf', bloquant: true,
+        message: "Fichier .dbf absent de l'archive — la table attributaire est indisponible (géométries sans données)."});
+      if (!present('.prj')) manquants.push({fichier: '.prj', bloquant: true,
+        message: "Fichier .prj absent de l'archive — système de coordonnées inconnu : positionnement potentiellement faux."});
+      if (!present('.shx')) manquants.push({fichier: '.shx', bloquant: true,
+        message: "Fichier .shx absent de l'archive — certains logiciels SIG refuseront d'ouvrir cette couche."});
+      const entreeDbf = nomEntree('.dbf');
+      const dbfBuf = entreeDbf ? await archive.files[entreeDbf].async('arraybuffer') : null;
+      await ajouterCouche(fc, fc.fileName || n,
+        {reprojetee: present('.prj'), manquants, completudeConnue: true,
+         typesChamps: dbfBuf ? typesChampsDbf(dbfBuf) : {}, sourceKey});
+    }
   } else if (/\.(geo)?json$/i.test(n)) {
-    ajouterCouche(JSON.parse(await f.text()), n);
+    let gj = JSON.parse(await f.text());
+    if (gj && gj.type === 'Feature') gj = {type: 'FeatureCollection', features: [gj]};
+    else if (gj && gj.type && gj.type !== 'FeatureCollection' && (gj.coordinates || gj.geometries))
+      gj = {type: 'FeatureCollection', features: [{type: 'Feature', geometry: gj, properties: {}}]};
+    if (!gj || gj.type !== 'FeatureCollection' || !Array.isArray(gj.features))
+      return erreurFichier(n, 'GeoJSON non reconnu — FeatureCollection, Feature ou géométrie attendus.', sourceKey);
+    await ajouterCouche(gj, n, {crsNom: 'WGS 84 (RFC 7946)', reprojetee: true, sourceKey});
   } else if (/\.gpkg$/i.test(n)) {
-    chargement('Téléchargement du moteur de lecture (une seule fois)…');
-    const [SQL, proj] = await Promise.all([libSql(), libProj()]);
+    if (location.protocol === 'file:') return erreurFichier(n,
+      'Les GeoPackage ne peuvent pas être analysés depuis un fichier ouvert en double-clic. ' +
+      'Utilisez GeoVerif en ligne — tous les autres formats fonctionnent partout.', sourceKey);
+    chargement('Chargement du moteur GeoPackage…');
+    let SQL, proj;
+    try {
+      [SQL, proj] = await Promise.race([
+        Promise.all([libSql(), libProj()]),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('délai dépassé (20 s)')), 20000))
+      ]);
+    } catch (e) {
+      chargement(null);
+      return erreurFichier(n, 'Impossible de charger le moteur GeoPackage (' + e.message + ').', sourceKey);
+    }
     chargement(`Ouverture de « ${n} »…`);
     await souffle();
-    const lues = lireGeoPackage(SQL, proj, await f.arrayBuffer());
-    if (!lues.length) { chargement(null); return erreur('Aucune couche vecteur dans ce GeoPackage.'); }
+    const lues = await lireGeoPackage(SQL, proj, await f.arrayBuffer());
+    if (!lues.length) { chargement(null); return erreurFichier(n, 'Aucune couche vecteur dans ce GeoPackage.', sourceKey); }
     for (const c of lues) {
+      if (c.refus) { erreurFichier(`${n} › ${c.nom}`, c.refus, sourceKey); continue; }
       chargement(`Analyse de « ${c.nom} » (${c.fc.features.length.toLocaleString('fr-FR')} entités)…`);
       await souffle();
-      ajouterCouche(c.fc, `${n} › ${c.nom}`, {crsNom: c.crs, reprojetee: true});
+      await ajouterCouche(c.fc, `${n} › ${c.nom}`, {crsNom: c.crs, reprojetee: true, geomIllisibles: c.geomIllisibles, sourceKey});
     }
     chargement(null);
   } else if (/\.kml$/i.test(n)) {
     const tg = await libKml();
-    ajouterCouche(tg.kml(new DOMParser().parseFromString(await f.text(), 'text/xml')), n, {reprojetee: true});
+    const docKml = new DOMParser().parseFromString(await f.text(), 'text/xml');
+    if (docKml.querySelector('parsererror')) return erreurFichier(n, 'XML invalide — fichier tronqué ou mal formé.', sourceKey);
+    await ajouterCouche(tg.kml(docKml), n, {reprojetee: true, sourceKey});
   } else if (/\.kmz$/i.test(n)) {
     const [tg, JSZ] = await Promise.all([libKml(), libZip()]);
-    const z = await JSZ.loadAsync(await f.arrayBuffer());
+    let z;
+    try { z = await JSZ.loadAsync(await f.arrayBuffer()); }
+    catch { return erreurFichier(n, 'Archive KMZ invalide — fichier corrompu ou tronqué.', sourceKey); }
+    const problemeKmz = problemeArchive(z);
+    if (problemeKmz) return erreurFichier(n, problemeKmz, sourceKey);
     const entree = Object.keys(z.files).find(k => /\.kml$/i.test(k));
-    if (!entree) return erreur('KMZ sans fichier KML interne.');
-    ajouterCouche(tg.kml(new DOMParser().parseFromString(await z.files[entree].async('text'), 'text/xml')), n, {reprojetee: true});
+    if (!entree) return erreurFichier(n, 'Archive KMZ sans fichier KML interne.', sourceKey);
+    const docKmz = new DOMParser().parseFromString(await z.files[entree].async('text'), 'text/xml');
+    if (docKmz.querySelector('parsererror')) return erreurFichier(n, 'XML invalide dans le KML interne — archive saine mais contenu mal formé.', sourceKey);
+    await ajouterCouche(tg.kml(docKmz), n, {reprojetee: true, sourceKey});
   } else if (/\.csv$/i.test(n)) {
     const Papa = await libCsv();
     const res = Papa.parse((await f.text()).trim(), {skipEmptyLines: true});
-    const fc = lignesVersPoints(res.data.slice(1), res.data[0]);
-    if (!fc) return erreur('Colonnes de coordonnées introuvables dans ' + n + ' (attendu : lat/lon, latitude/longitude, x/y…).');
-    ajouterCouche(fc, n);
+    if (!res.data.length || !res.data[0] || !res.data[0].length) return erreurFichier(n, 'Le fichier ne contient aucune donnée.', sourceKey);
+    const pts = lignesVersPoints(res.data.slice(1), res.data[0]);
+    if (!pts) return erreurFichier(n, 'Colonnes de coordonnées introuvables (attendu : lat/lon, latitude/longitude, x/y…).', sourceKey);
+    if (!pts.fc.features.length) return erreurFichier(n, 'Aucune ligne avec des coordonnées valides.', sourceKey);
+    await ajouterCouche(pts.fc, n, {lignesIgnorees: pts.ignorees, sourceKey});
   } else if (/\.xlsx?$/i.test(n)) {
     const XLSX = await libXlsx();
     const wb = XLSX.read(await f.arrayBuffer());
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header: 1, defval: ''});
-    if (rows.length < 2) return erreur('Feuille Excel vide.');
-    const fc = lignesVersPoints(rows.slice(1), rows[0]);
-    if (!fc) return erreur('Colonnes de coordonnées introuvables dans ' + n + '.');
-    ajouterCouche(fc, n);
+    if (rows.length < 2) return erreurFichier(n, 'Feuille Excel vide.', sourceKey);
+    if (!rows.length || !rows[0] || !rows[0].length) return erreurFichier(n, 'Le fichier ne contient aucune donnée (première feuille vide).', sourceKey);
+    const pts = lignesVersPoints(rows.slice(1), rows[0]);
+    if (!pts) return erreurFichier(n, 'Colonnes de coordonnées introuvables (attendu : lat/lon, latitude/longitude, x/y…).', sourceKey);
+    if (!pts.fc.features.length) return erreurFichier(n, 'Aucune ligne avec des coordonnées valides.', sourceKey);
+    await ajouterCouche(pts.fc, n, {lignesIgnorees: pts.ignorees, sourceKey});
   } else {
-    erreur('Format non reconnu : ' + n + ' — cliquez sur « Formats » pour la liste.');
+    erreurFichier(n, 'Format non pris en charge — cliquez sur « Formats » pour consulter la liste des formats reconnus.', sourceKey);
   }
 }
 
@@ -794,44 +1250,51 @@ function allerA(res) {
 }
 async function chercherLieux(q, limit) {
   const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=${limit}`);
+  if (!r.ok) throw new Error('Nominatim a répondu avec le statut ' + r.status);
   return r.json();
 }
-let _sugTimer = null;
+// Politique d'usage Nominatim : pas d'autocomplétion — une requête par Entrée, choix si plusieurs résultats.
 const _rech = $('#recherche');
-_rech.addEventListener('input', () => {
-  clearTimeout(_sugTimer);
-  const q = _rech.value.trim();
-  const s = $('#suggestions');
-  if (q.length < 3) { s.style.display = 'none'; return; }
-  _sugTimer = setTimeout(async () => {
-    try {
-      const res = await chercherLieux(q, 5);
-      if (!res.length) { s.style.display = 'none'; return; }
-      s.innerHTML = res.map((x, i) => `<div data-i="${i}">${echap(x.display_name)}</div>`).join('');
-      s.style.display = 'block';
-      [...s.children].forEach((el, i) => el.onclick = () => {
-        _rech.value = res[i].display_name.split(',')[0];
-        s.style.display = 'none';
-        allerA(res[i]);
-      });
-    } catch { s.style.display = 'none'; }
-  }, 450);
-});
-_rech.addEventListener('blur', () => setTimeout(() => $('#suggestions').style.display = 'none', 200));
-_rech.addEventListener('keydown', async e => {
-  if (e.key !== 'Enter' || !_rech.value.trim()) return;
+function masquerSuggestions() {
   $('#suggestions').style.display = 'none';
+  _rech.setAttribute('aria-expanded', 'false');
+}
+_rech.addEventListener('blur', () => setTimeout(masquerSuggestions, 200));
+_rech.addEventListener('keydown', async e => {
+  if (e.key === 'Escape') { masquerSuggestions(); return; }
+  if (e.key !== 'Enter' || !_rech.value.trim()) return;
+  const s = $('#suggestions');
+  masquerSuggestions();
   try {
-    const r = await chercherLieux(_rech.value.trim(), 1);
-    if (!r.length) { $('#info').textContent = 'Lieu introuvable.'; return; }
-    allerA(r[0]);
+    const res = await chercherLieux(_rech.value.trim(), 5);
+    if (!res.length) { $('#info').textContent = 'Lieu introuvable.'; return; }
+    if (res.length === 1) return allerA(res[0]);
+    s.innerHTML = res.map((x, i) => `<button type="button" role="option" aria-selected="false" data-i="${i}">${echap(x.display_name)}</button>`).join('');
+    s.style.display = 'block';
+    _rech.setAttribute('aria-expanded', 'true');
+    [...s.children].forEach((el, i) => el.onclick = () => {
+      _rech.value = res[i].display_name.split(',')[0];
+      masquerSuggestions();
+      allerA(res[i]);
+    });
   } catch { $('#info').textContent = 'Recherche indisponible (hors ligne ?).'; }
 });
 
 // --- fonds de plan ---
+let erreursAerien = 0;
+let retourPlanEnCours = false;
+fondAerien.on('tileerror', () => {
+  erreursAerien++;
+  if (!aerien || erreursAerien < 3 || retourPlanEnCours) return;
+  retourPlanEnCours = true;
+  carte.removeLayer(fondAerien); fondPlan.addTo(carte); aerien = false;
+  $('#btnfond').textContent = 'Vue aérienne';
+  toast('Vue aérienne indisponible (accès refusé ou hors ligne) — retour automatique au fond de plan.', 9000);
+  setTimeout(() => { retourPlanEnCours = false; }, 1000);
+});
 $('#btnfond').addEventListener('click', () => {
   aerien = !aerien;
-  if (aerien) { carte.removeLayer(fondPlan); fondAerien.addTo(carte); $('#btnfond').textContent = 'Vue plan'; }
+  if (aerien) { erreursAerien = 0; carte.removeLayer(fondPlan); fondAerien.addTo(carte); $('#btnfond').textContent = 'Vue plan'; }
   else { carte.removeLayer(fondAerien); fondPlan.addTo(carte); $('#btnfond').textContent = 'Vue aérienne'; }
 });
 
@@ -842,45 +1305,90 @@ function imprimerRapport(i) {
   const w = window.open('', '_blank');
   if (!w) { toast('Fenêtre bloquée par le navigateur — autorisez les pop-ups pour imprimer le rapport.'); return; }
   w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
-<title>Rapport GéoVerif — ${echap(c.nom)}</title>
-<style>body{font-family:system-ui,sans-serif;margin:36px;font-size:13px;color:#1a1a1a}
+<title>Rapport GeoVerif — ${echap(c.nom)}</title>
+<style>@page{size:A4 portrait;margin:12mm}body{font-family:system-ui,sans-serif;margin:0;font-size:11px;color:#1a1a1a}
 h3{font-size:19px;margin:0 0 4px}h4{margin:16px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#777}
-table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #ccc;padding:3px 6px;text-align:left}
-th{background:#f2f1ee}.ok{color:#1d5c1d}.pb{color:#b3261e}.alerte{color:#9a6a00}ul{padding-left:18px}li{margin:3px 0}</style>
+table{border-collapse:collapse;width:100%;font-size:9.5px;table-layout:fixed}th,td{border:1px solid #ccc;padding:3px 5px;text-align:left;overflow-wrap:anywhere}
+th{background:#f2f1ee}.ok{color:#1d5c1d}.pb{color:#b3261e}.alerte{color:#9a6a00}ul{padding-left:18px}li{margin:3px 0}
+.table-scroll{overflow:visible;margin:6px 0 12px}.apercu-ecran{display:none}.apercu-impression{display:block}.hintattr{font-size:9px;color:#777}.apercu-indisponible{font-size:11px;color:#666;border:1px solid #ccc;padding:10px;background:#f7f7f5}
+@media print{button{display:none}tr{break-inside:avoid;page-break-inside:avoid}thead{display:table-header-group}}</style>
 </head><body onload="setTimeout(function(){window.print()},300)">${htmlRapport(c.rapport, c.nom, true)}
-<p style="color:#999;font-size:10px;margin-top:26px">Rapport généré par GéoVerif v1.0 le ${new Date().toLocaleString('fr-FR')} — traitement 100% local.</p>
+<p style="color:#999;font-size:10px;margin-top:26px">Rapport généré par GeoVerif v1.0 le ${new Date().toLocaleString('fr-FR')} — traitement local.</p>
 </body></html>`);
   w.document.close();
   w.focus();
 }
 
 // --- branchements ---
+let _declencheurModale = null;
+function ouvrirModale(id, declencheur = document.activeElement) {
+  const modale = $('#' + id);
+  if (!modale) return;
+  _declencheurModale = declencheur && typeof declencheur.focus === 'function' ? declencheur : null;
+  modale.style.display = 'flex';
+  const cible = modale.querySelector('button, a[href], input, [tabindex]:not([tabindex="-1"])');
+  if (cible) requestAnimationFrame(() => cible.focus());
+}
+function fermerModale(id) {
+  const modale = $('#' + id);
+  if (modale) modale.style.display = 'none';
+  const retour = _declencheurModale;
+  _declencheurModale = null;
+  if (retour && document.contains(retour)) retour.focus();
+}
 $('#drop').addEventListener('click', () => $('#fichier').click());
 $('#ouvrir').addEventListener('click', () => $('#fichier').click());
-$('#btnaccueil').addEventListener('click', accueil);
 $('#logo').addEventListener('click', accueil);
-$('#btnrapport').addEventListener('click', () => {
-  if (couches.length) voirRapport(couches.length - 1);
+$('#logo').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); accueil(); }
 });
-$('#btnformats').addEventListener('click', () => $('#modal').style.display = 'flex');
-$('#btnmethodo').addEventListener('click', () => $('#methodo').style.display = 'flex');
+$('#btnrapport').addEventListener('click', () => {
+  if (couches.length) voirRapport(idxCourant >= 0 ? idxCourant : couches.length - 1);
+});
+$('#btnformats').addEventListener('click', e => ouvrirModale('modal', e.currentTarget));
+$('#btnmethodo').addEventListener('click', e => ouvrirModale('methodo', e.currentTarget));
 const MODALES = ['rapportcomplet', 'methodo', 'apropos', 'modal'];
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') MODALES.forEach(id => $('#' + id).style.display = 'none');
+  if (e.key === 'Escape') {
+    masquerSuggestions();
+    const ouverte = MODALES.map(id => $('#' + id)).find(m => m.style.display === 'flex');
+    if (ouverte) fermerModale(ouverte.id);
+    if ($('#panneau').style.display === 'block') fermerPanneau();
+    return;
+  }
+  // piège de focus : tant qu'une modale est ouverte, Tab boucle à l'intérieur
+  if (e.key !== 'Tab') return;
+  const ouverte = MODALES.map(id => $('#' + id)).find(m => m.style.display === 'flex');
+  if (!ouverte) return;
+  const focos = ouverte.querySelectorAll('button, a[href], input, [tabindex]:not([tabindex="-1"])');
+  if (!focos.length) return;
+  const prem = focos[0], der = focos[focos.length - 1];
+  if (e.shiftKey && document.activeElement === prem) { der.focus(); e.preventDefault(); }
+  else if (!e.shiftKey && (document.activeElement === der || !ouverte.contains(document.activeElement))) { prem.focus(); e.preventDefault(); }
 });
 for (const id of MODALES) {
   const el = $('#' + id);
-  el.addEventListener('click', e => { if (e.target === el) el.style.display = 'none'; });
+  el.addEventListener('click', e => { if (e.target === el) fermerModale(id); });
 }
 
 $('#fichier').addEventListener('change', e => { lireFichiers(e.target.files); e.target.value = ''; });
-['dragover','dragenter'].forEach(ev => document.body.addEventListener(ev, e => e.preventDefault()));
+$('#drop').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#fichier').click(); }
+});
+let _drag = 0;
+document.body.addEventListener('dragenter', e => { e.preventDefault(); _drag++; $('#drop').classList.add('survol'); });
+document.body.addEventListener('dragover', e => e.preventDefault());
+document.body.addEventListener('dragleave', () => { if (--_drag <= 0) { _drag = 0; $('#drop').classList.remove('survol'); } });
 document.body.addEventListener('drop', e => {
   e.preventDefault();
+  _drag = 0; $('#drop').classList.remove('survol');
   if (e.dataTransfer.files.length) lireFichiers(e.dataTransfer.files);
 });
 </script>
-<script data-goatcounter="https://geoverif.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http'))
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    </script>
+    <script data-goatcounter="https://geoverif.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
-

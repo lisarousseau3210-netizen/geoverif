@@ -1,17 +1,21 @@
 {
-  "name": "GéoVerif — contrôle qualité des livrables SIG",
-  "short_name": "GéoVerif",
-  "description": "Vérifiez la validité d'un livrable SIG : complétude, projection, géométries, attributs. Verdict en 3 secondes, traitement 100% local.",
+  "name": "GeoVerif — Contrôle qualité des livrables SIG",
+  "short_name": "GeoVerif",
+  "description": "Contrôlez la complétude, la projection, les géométries et les attributs de vos livrables SIG directement dans le navigateur.",
+  "id": "./",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f5f4f0",
-  "theme_color": "#2d6a4f",
+  "theme_color": "#589632",
   "lang": "fr",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
